@@ -5,7 +5,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 export default function Header() {
   const router = useRouter();
@@ -78,6 +79,9 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
+                <VisuallyHidden>
+                  <SheetTitle>Mobile Navigation</SheetTitle>
+                </VisuallyHidden>
                 <div className="flex flex-col gap-4 mt-8">
                   {navLinks}
                 </div>
