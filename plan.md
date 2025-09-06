@@ -22,12 +22,14 @@ This document outlines the file structure of the project and provides instructio
 
 ## Website Functionality
 
--   **Homepage:** The main page displays a grid of videos and a carousel of "Shorts".
--   **Video Player:** Clicking on any video card takes you to a dedicated watch page with an advanced video player. The player includes custom controls for play/pause, volume, progress seeking, 10-second skips, and playback speed adjustment.
--   **Shorts Player:** Clicking on a "Shorts" card takes you to a vertical, full-screen player designed for short-form content. You can navigate between shorts using the up and down arrow buttons.
+-   **Homepage:** The main page displays a grid of videos and a carousel of "Shorts". It features tabs for "All Videos," "Trending," "New," and "Photos."
+-   **Video Player:** Clicking on any video card takes you to a dedicated watch page with an advanced video player. The player includes custom controls for play/pause, volume, progress seeking, 10-second skips (via keyboard arrows), and playback speed adjustment.
+-   **Shorts Player:** Clicking on a "Shorts" card takes you to a vertical, full-screen player designed for short-form content. You can navigate between shorts using the up and down arrow buttons on the screen or the arrow keys on your keyboard.
 -   **Search:** Use the search bar in the header to filter videos by title, description, or channel.
 -   **Login/Signup:** The application includes UI pages for login and signup. Currently, these are frontend-only and do not have backend authentication.
--   **Filtering:** The sidebar on the homepage allows filtering content by various criteria, although the filtering logic is not yet connected to the video list.
+-   **Filtering:** The sidebar on the homepage allows filtering content by various criteria (type, category, etc.), although the filtering logic is not yet connected to the video list.
+-   **Comments:** The video watch page includes a comments section that prompts non-authenticated users to log in or sign up.
+-   **Responsive Design:** The site features a responsive header that adapts to mobile screens, consolidating navigation and login/signup options into menus.
 
 ---
 
@@ -38,6 +40,8 @@ Here is a breakdown of the current files and directories in the project:
 -   `/.env`: Environment variables file. Currently empty but intended for storing sensitive information like API keys or database URLs.
 -   `/README.md`: The main README file for the project.
 -   `/apphosting.yaml`: Configuration file for Firebase App Hosting.
+-   `/backend.md`: A detailed prompt and plan for building the required backend services.
+-   `/context.md`: Detailed documentation on the project's file structure and context.
 -   `/components.json`: Configuration for `shadcn/ui` components.
 -   `/next.config.ts`: Configuration file for the Next.js framework.
 -   `/package.json`: Lists all project dependencies and scripts.
@@ -60,9 +64,15 @@ Here is a breakdown of the current files and directories in the project:
     -   `layout.tsx`: The main layout component for the entire application.
     -   `page.tsx`: The component for the homepage (`/`).
     -   `login/page.tsx`: The component for the login page (`/login`).
-    -   `search/page.tsx`: The component for the search results page (`/search`).
-    -   `shorts/[id]/page.tsx`: Dynamic route for the "Shorts" video player.
     -   `signup/page.tsx`: The component for the signup page (`/signup`).
+    -   `search/page.tsx`: The component for the search results page (`/search`).
+    -   `videos/page.tsx`: The component for the all videos page (`/videos`).
+    -   `live/page.tsx`: The component for the live page (`/live`).
+    -   `categories/page.tsx`: The component for the categories page (`/categories`).
+    -   `creators/page.tsx`: The component for the creators page (`/creators`).
+    -   `channels/page.tsx`: The component for the channels page (`/channels`).
+    -   `playlists/page.tsx`: The component for the playlists page (`/playlists`).
+    -   `shorts/[id]/page.tsx`: Dynamic route for the "Shorts" video player.
     -   `watch/[id]/page.tsx`: Dynamic route for the main video player page.
 
 -   `/src/components/`: Contains all reusable React components.

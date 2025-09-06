@@ -118,3 +118,59 @@ You don't have to connect just use it .env files and make fully useable after ru
 ### Prompt 6
 
 ok, create a files task.md and plan.md where save all the pormpts and save the current directory status and add coments for each files and write how to funtions the website.
+
+---
+
+### Prompt 7
+
+implement short videos controller also. Make the trending page, new page and photos page also. Create video, live categories , creator, channels , playlist page. If user not login/signup show login/singup to comment
+
+---
+
+### Prompt 8
+
+I see this error with the app, reported by NextJS, please fix it. The error is reported as HTML but presented visually to the user).
+
+A > before the line number in the error source usually indicates the line of interest: 
+
+> Build Error: Ecmascript file had an error. Error source: ./src/components/header.tsx (5:10)
+> Ecmascript file had an error
+>   3 | import { Button } from './ui/button';
+>   4 | import { Input } from './ui/input';
+> > 5 | import { useRouter } from 'next/navigation';
+>     |          ^^^^^^^^^
+>   6 |
+>   7 | export default function Header() {
+>   8 |   const router = useRouter();
+> 
+> You're importing a component that needs `useRouter`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `"use client"` directive.
+> 
+>  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+---
+
+### Prompt 9
+
+I see this error with the app, reported by NextJS, please fix it. The error is reported as HTML but presented visually to the user).
+
+A > before the line number in the error source usually indicates the line of interest: 
+
+> ./src/components/header.tsx:5:10
+> Ecmascript file had an error
+>   3 | import { Button } from './ui/button';
+>   4 | import { Input } from './ui/input';
+> > 5 | import { useRouter } from 'next/navigation';
+>     |          ^^^^^^^^^
+>   6 |
+>   7 | export default function Header() {
+>   8 |   const router = useRouter();
+> 
+> You're importing a component that needs `useRouter`. This React hook only works in a client component. To fix, mark the file (or its parent) with the `"use client"` directive.
+> 
+>  Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+---
+
+### Prompt 10
+
+Also the mobile version of the site has search options also , the search options . remove two different options. Just add single login/signup options in the phone version. And all these comits and the site also save this on the plan.md and task.md . also add detailed structure of the site in context.md and add full prompt for the backend in the backend.md and there write how the frontend will interact with backend.
