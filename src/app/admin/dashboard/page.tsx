@@ -93,7 +93,7 @@ export default function DashboardPage() {
                     <Legend />
                     <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" />
                 </LineChart>
-            </responsivecontainer>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
