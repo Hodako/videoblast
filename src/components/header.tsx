@@ -19,6 +19,15 @@ export default function Header() {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     }
   };
+  
+  const searchForm = (
+    <form onSubmit={handleSearch} className="relative">
+      <Input name="search" placeholder="Search..." className="bg-muted pr-10" />
+      <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground">
+        <Search className="w-4 h-4" />
+      </Button>
+    </form>
+  );
 
   const navLinks = (
     <>
@@ -42,12 +51,7 @@ export default function Header() {
         </nav>
       </div>
       <div className="flex-1 max-w-md mx-5 hidden md:block">
-        <form onSubmit={handleSearch} className="relative">
-          <Input name="search" placeholder="Search..." className="bg-muted pr-10" />
-          <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground">
-            <Search className="w-4 h-4" />
-          </Button>
-        </form>
+        {searchForm}
       </div>
       <div className="flex items-center gap-2">
         <div className="hidden sm:flex items-center gap-2">
@@ -82,6 +86,9 @@ export default function Header() {
                 <VisuallyHidden>
                   <SheetTitle>Mobile Navigation</SheetTitle>
                 </VisuallyHidden>
+                <div className="md:hidden my-4">
+                  {searchForm}
+                </div>
                 <div className="flex flex-col gap-4 mt-8">
                   {navLinks}
                 </div>
