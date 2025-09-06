@@ -1,3 +1,4 @@
+'use client';
 import Header from '@/components/header';
 import PromoBanner from '@/components/promo-banner';
 import SidebarContent from '@/components/sidebar-content';
