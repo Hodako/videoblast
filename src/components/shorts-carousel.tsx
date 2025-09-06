@@ -26,7 +26,7 @@ export default function ShortsCarousel() {
         <CarouselContent className="-ml-2 md:-ml-4">
           {shorts.map((short, index) => (
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8">
-              <ShortsCard short={short} />
+              <ShortsCard short={short} index={index}/>
             </CarouselItem>
           ))}
         </CarouselContent>

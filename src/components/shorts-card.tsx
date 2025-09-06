@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 
 type ShortsCardProps = {
   short: {
@@ -8,10 +9,12 @@ type ShortsCardProps = {
     thumbnail: string;
     imageUrl: string;
   };
+  index: number;
 };
 
-export default function ShortsCard({ short }: ShortsCardProps) {
+export default function ShortsCard({ short, index }: ShortsCardProps) {
   return (
+    <Link href={`/shorts/${index}`}>
     <Card className="w-full overflow-hidden rounded-lg bg-card border-none aspect-[9/16] relative cursor-pointer transition-transform hover:scale-105 group">
       <Image
         src={short.imageUrl}
@@ -26,5 +29,6 @@ export default function ShortsCard({ short }: ShortsCardProps) {
         <p className="text-[10px] text-muted-foreground">{short.views}</p>
       </div>
     </Card>
+    </Link>
   );
 }
