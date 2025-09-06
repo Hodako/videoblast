@@ -1,10 +1,33 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Header from '@/components/header';
 import PromoBanner from '@/components/promo-banner';
 import SidebarContent from '@/components/sidebar-content';
 import MainContent from '@/components/main-content';
+import { Button } from '@/components/ui/button';
+import { Film } from 'lucide-react';
+import Link from 'next/link';
+import { useWindowScroll } from 'react-use';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 export default function Home() {
+  const { y } = useWindowScroll();
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const [lastY, setLastY] = useState(0);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (y > lastY) {
+      setIsScrollingDown(true);
+    } else {
+      setIsScrollingDown(false);
+    }
+    setLastY(y);
+  }, [y, lastY]);
+
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
@@ -17,6 +40,20 @@ export default function Home() {
           <MainContent />
         </main>
       </div>
+
+       {isMobile && (
+         <Link href="/shorts/0" passHref>
+          <Button
+            className={cn(
+              "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full shadow-lg transition-transform transform",
+              isScrollingDown ? "translate-y-24" : "translate-y-0"
+            )}
+          >
+            <Film className="mr-2 h-5 w-5" />
+            Shorts
+          </Button>
+         </Link>
+      )}
     </div>
   );
 }

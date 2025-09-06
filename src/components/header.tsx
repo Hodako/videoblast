@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Menu, Search, UserCircle, ArrowLeft } from 'lucide-react';
+import { Menu, Search, UserCircle, ArrowLeft, Film } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
@@ -47,7 +47,9 @@ export default function Header() {
   const navLinks = (
     <>
       <Link href="/videos" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
-      <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors">Shorts</Link>
+      <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2 lg:hidden">
+        <Film className="w-5 h-5" /> Shorts
+      </Link>
       <Link href="/live" className="text-sm text-foreground hover:text-primary transition-colors">Live</Link>
       <Link href="/categories" className="text-sm text-foreground hover:text-primary transition-colors">Categories</Link>
       <Link href="/creators" className="text-sm text-foreground hover:text-primary transition-colors">Creators</Link>
