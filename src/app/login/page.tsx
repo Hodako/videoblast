@@ -13,8 +13,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link";
 import Header from "@/components/header";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const router = useRouter();
+
+  const handleLogin = async () => {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (response.ok) {
+      const { token } = await response.json();
+      localStorage.setItem('token', token);
+      router.push('/');
+    } else {
+      // Handle error
+      console.error('Login failed');
+    }
+  };
+
   return (
     <>
     <Header />
@@ -29,15 +54,15 @@ export default function LoginPage() {
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input id="email" type="email" placeholder="m@example.com" required onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" required onChange={(e) => setPassword(e.target.value)} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col">
-          <Button className="w-full">Sign in</Button>
+          <Button className="w-full" onClick={handleLogin}>Sign in</Button>
           <p className="mt-4 text-xs text-center text-muted-foreground">
             Don't have an account?{" "}
             <Link href="/signup" className="underline">

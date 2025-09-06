@@ -10,13 +10,15 @@ import Link from 'next/link';
 import { useWindowScroll } from 'react-use';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import { getVideos, getShorts } from '@/lib/data';
 
 export default function Home() {
   const { y } = useWindowScroll();
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const [lastY, setLastY] = useState(0);
   const isMobile = useIsMobile();
+  const [videos, setVideos] = useState([]);
+  const [shorts, setShorts] = useState([]);
 
   useEffect(() => {
     if (y > lastY) {
@@ -26,6 +28,16 @@ export default function Home() {
     }
     setLastY(y);
   }, [y, lastY]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const videosData = await getVideos();
+      const shortsData = await getShorts();
+      setVideos(videosData);
+      setShorts(shortsData);
+    };
+    fetchData();
+  }, []);
 
 
   return (
@@ -37,7 +49,7 @@ export default function Home() {
           <SidebarContent />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
-          <MainContent />
+          <MainContent videos={videos} shorts={shorts} />
         </main>
       </div>
 

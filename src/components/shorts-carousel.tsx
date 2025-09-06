@@ -1,4 +1,3 @@
-import { shorts } from '@/lib/data';
 import {
   Carousel,
   CarouselContent,
@@ -9,7 +8,7 @@ import {
 import ShortsCard from './shorts-card';
 import { Film } from 'lucide-react';
 
-export default function ShortsCarousel() {
+export default function ShortsCarousel({ shorts }) {
   return (
     <section className="mt-10">
       <h2 className="text-lg font-bold mb-5 flex items-center gap-2">

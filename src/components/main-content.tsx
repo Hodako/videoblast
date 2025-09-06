@@ -1,12 +1,11 @@
-import { videos } from '@/lib/data';
 import VideoCard from './video-card';
 import ShortsCarousel from './shorts-carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function MainContent() {
+export default function MainContent({ videos, shorts }) {
   const trendingVideos = videos.slice().sort(() => 0.5 - Math.random()).slice(0, 8);
   const newVideos = [...videos].reverse().slice(0, 8);
-  const photos = videos.filter(v => v.thumbnail.includes('bigger'));
+  const photos = videos.filter(v => v.thumbnail && v.thumbnail.includes('bigger'));
 
   return (
     <Tabs defaultValue="all" className="w-full">
@@ -23,7 +22,7 @@ export default function MainContent() {
             <VideoCard key={index} video={video} index={index} />
           ))}
         </div>
-        <ShortsCarousel />
+        <ShortsCarousel shorts={shorts} />
       </TabsContent>
       <TabsContent value="trending">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
