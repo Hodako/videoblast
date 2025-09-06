@@ -4,6 +4,10 @@ import ShortsCarousel from './shorts-carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function MainContent() {
+  const trendingVideos = videos.slice().sort(() => 0.5 - Math.random()).slice(0, 8);
+  const newVideos = [...videos].reverse().slice(0, 8);
+  const photos = videos.filter(v => v.thumbnail.includes('bigger'));
+
   return (
     <Tabs defaultValue="all" className="w-full">
       <TabsList className="bg-transparent p-0 border-b border-border rounded-none mb-8 justify-start">
@@ -22,19 +26,25 @@ export default function MainContent() {
         <ShortsCarousel />
       </TabsContent>
       <TabsContent value="trending">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Trending videos coming soon.</p>
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            {trendingVideos.map((video, index) => (
+              <VideoCard key={`trending-${index}`} video={video} index={videos.indexOf(video)} />
+            ))}
+          </div>
       </TabsContent>
       <TabsContent value="new">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">New videos coming soon.</p>
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            {newVideos.map((video, index) => (
+              <VideoCard key={`new-${index}`} video={video} index={videos.indexOf(video)} />
+            ))}
+          </div>
       </TabsContent>
       <TabsContent value="photos">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Photos coming soon.</p>
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            {photos.map((video, index) => (
+              <VideoCard key={`photo-${index}`} video={video} index={videos.indexOf(video)} />
+            ))}
+          </div>
       </TabsContent>
     </Tabs>
   );

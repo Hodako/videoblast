@@ -21,13 +21,11 @@ export default function ShortsPage() {
   const goToNextShort = () => {
     const nextIndex = (currentIndex + 1) % shorts.length;
     router.push(`/shorts/${nextIndex}`, { scroll: false });
-    setCurrentIndex(nextIndex);
   };
 
   const goToPrevShort = () => {
     const prevIndex = (currentIndex - 1 + shorts.length) % shorts.length;
     router.push(`/shorts/${prevIndex}`, { scroll: false });
-    setCurrentIndex(prevIndex);
   };
 
   useEffect(() => {
@@ -35,8 +33,24 @@ export default function ShortsPage() {
   }, [id]);
 
   useEffect(() => {
-    videoRef.current?.play();
-  }, [currentIndex]);
+    if (videoRef.current) {
+        videoRef.current.currentTime = 0;
+        videoRef.current.play();
+    }
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'ArrowDown') {
+            goToNextShort();
+        } else if (e.key === 'ArrowUp') {
+            goToPrevShort();
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [id]);
   
   if (!currentShort) {
     return (
@@ -60,11 +74,12 @@ export default function ShortsPage() {
           loop
           className="w-full h-full object-cover"
           onClick={(e) => e.currentTarget.paused ? e.currentTarget.play() : e.currentTarget.pause()}
+          autoPlay
         />
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
           <div className="flex items-center gap-2 mb-2">
-            <Avatar size="sm">
+            <Avatar>
               <AvatarImage src={`https://i.pravatar.cc/150?u=${currentShort.title}`} />
               <AvatarFallback>{currentShort.title.charAt(0)}</AvatarFallback>
             </Avatar>

@@ -23,12 +23,12 @@ export default function Header() {
           VideoHub
         </Link>
         <nav className="hidden lg:flex gap-8 list-none">
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Live</Link>
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Categories</Link>
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Creators</Link>
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Channels</Link>
-          <Link href="#" className="text-sm text-foreground hover:text-primary transition-colors">Playlists</Link>
+          <Link href="/videos" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
+          <Link href="/live" className="text-sm text-foreground hover:text-primary transition-colors">Live</Link>
+          <Link href="/categories" className="text-sm text-foreground hover:text-primary transition-colors">Categories</Link>
+          <Link href="/creators" className="text-sm text-foreground hover:text-primary transition-colors">Creators</Link>
+          <Link href="/channels" className="text-sm text-foreground hover:text-primary transition-colors">Channels</Link>
+          <Link href="/playlists" className="text-sm text-foreground hover:text-primary transition-colors">Playlists</Link>
         </nav>
       </div>
       <div className="flex-1 max-w-md mx-5 hidden sm:block">

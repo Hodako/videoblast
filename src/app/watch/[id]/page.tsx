@@ -6,11 +6,15 @@ import Header from '@/components/header';
 import { videos } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send } from 'lucide-react';
 import VideoCard from '@/components/video-card';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 export default function WatchPage() {
   const params = useParams();
@@ -256,7 +260,7 @@ export default function WatchPage() {
                         <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon"><Settings /></Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-56 p-2">
+                        <PopoverContent className="w-56 p-2 bg-background/90 backdrop-blur-sm border-slate-700">
                            <div className="text-sm p-2 rounded-md">
                                 <p className="font-semibold mb-2">Playback Speed</p>
                                 <div className="space-y-1">
@@ -265,8 +269,8 @@ export default function WatchPage() {
                                             key={rate} 
                                             onClick={() => handlePlaybackRateChange(rate)}
                                             className={cn(
-                                                "w-full text-left p-2 rounded-md hover:bg-muted flex items-center justify-between",
-                                                rate === playbackRate && "bg-muted"
+                                                "w-full text-left p-2 rounded-md hover:bg-muted/50 flex items-center justify-between",
+                                                rate === playbackRate && "bg-muted/50"
                                             )}
                                         >
                                             <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
@@ -275,7 +279,7 @@ export default function WatchPage() {
                                     ))}
                                 </div>
                             </div>
-                            <p className="text-sm p-2 hover:bg-muted rounded-md cursor-pointer mt-2">Quality</p>
+                            <p className="text-sm p-2 hover:bg-muted/50 rounded-md cursor-pointer mt-2">Quality</p>
                         </PopoverContent>
                     </Popover>
                     <Button variant="ghost" size="icon" onClick={handleToggleFullScreen}>
@@ -310,12 +314,28 @@ export default function WatchPage() {
                 <Button variant="ghost">
                   <Share2 className="mr-2 h-4 w-4" /> Share
                 </Button>
-                
               </div>
             </div>
             <div className="mt-4 bg-muted p-4 rounded-lg">
               <p className="font-semibold">{video.views} &bull; {video.uploaded}</p>
               <p className="text-sm mt-2">{video.description}</p>
+            </div>
+             <div className="mt-6">
+                <div className="flex items-center gap-4 mb-4">
+                    <MessageCircle className="w-6 h-6" />
+                    <h2 className="text-xl font-bold">Comments</h2>
+                </div>
+                <div className="bg-muted p-4 rounded-lg text-center">
+                    <p className="text-muted-foreground mb-4">
+                        <Link href="/login" className="text-primary underline">Login</Link> or <Link href="/signup" className="text-primary underline">Sign up</Link> to post a comment.
+                    </p>
+                    <div className="relative">
+                        <Textarea placeholder="Add a comment..." className="bg-background pr-12" disabled />
+                        <Button size="icon" className="absolute right-2 bottom-2" disabled>
+                            <Send className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
             </div>
           </div>
         </div>
