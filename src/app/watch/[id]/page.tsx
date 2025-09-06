@@ -1,12 +1,12 @@
 // src/app/watch/[id]/page.tsx
 'use client';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Header from '@/components/header';
 import { videos } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Share2, Download, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check } from 'lucide-react';
 import VideoCard from '@/components/video-card';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -30,6 +30,8 @@ export default function WatchPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const playbackRates = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   let controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -85,7 +87,7 @@ export default function WatchPage() {
   const handleToggleFullScreen = useCallback(() => {
     if (!playerContainerRef.current) return;
 
-    if (!isFullScreen) {
+    if (!document.fullscreenElement) {
       if (playerContainerRef.current.requestFullscreen) {
         playerContainerRef.current.requestFullscreen();
       }
@@ -94,7 +96,20 @@ export default function WatchPage() {
         document.exitFullscreen();
       }
     }
-  }, [isFullScreen]);
+  }, []);
+
+  const handlePlaybackRateChange = (rate: number) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = rate;
+      setPlaybackRate(rate);
+    }
+  };
+
+  const skipTime = (amount: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += amount;
+    }
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -114,14 +129,40 @@ export default function WatchPage() {
       setIsFullScreen(!!document.fullscreenElement);
     };
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+        switch(e.key.toLowerCase()) {
+            case ' ':
+            case 'k':
+                e.preventDefault();
+                handlePlayPause();
+                break;
+            case 'f':
+                handleToggleFullScreen();
+                break;
+            case 'arrowleft':
+                skipTime(-10);
+                break;
+            case 'arrowright':
+                skipTime(10);
+                break;
+            case 'm':
+                handleToggleMute();
+                break;
+        }
+    }
+
     document.addEventListener('fullscreenchange', handleFullScreenChange);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       video.removeEventListener('timeupdate', updateProgress);
       video.removeEventListener('loadedmetadata', setVideoDuration);
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [id]);
+  }, [id, handlePlayPause, handleToggleFullScreen, handleToggleMute]);
 
   const handleMouseMove = () => {
     setShowControls(true);
@@ -167,9 +208,15 @@ export default function WatchPage() {
                 showControls ? "opacity-100" : "opacity-0"
               )}
             >
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-10">
+                <Button variant="ghost" size="icon" className="w-16 h-16" onClick={() => skipTime(-10)}>
+                  <RotateCcw className="w-10 h-10" />
+                </Button>
                 <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
                   {isPlaying ? <Pause className="w-12 h-12" /> : <Play className="w-12 h-12" />}
+                </Button>
+                <Button variant="ghost" size="icon" className="w-16 h-16" onClick={() => skipTime(10)}>
+                  <RotateCw className="w-10 h-10" />
                 </Button>
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
@@ -209,9 +256,26 @@ export default function WatchPage() {
                         <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon"><Settings /></Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-40 p-2">
-                            <p className="text-sm p-2 hover:bg-muted rounded-md cursor-pointer">Playback Speed</p>
-                            <p className="text-sm p-2 hover:bg-muted rounded-md cursor-pointer">Quality</p>
+                        <PopoverContent className="w-56 p-2">
+                           <div className="text-sm p-2 rounded-md">
+                                <p className="font-semibold mb-2">Playback Speed</p>
+                                <div className="space-y-1">
+                                    {playbackRates.map(rate => (
+                                        <button 
+                                            key={rate} 
+                                            onClick={() => handlePlaybackRateChange(rate)}
+                                            className={cn(
+                                                "w-full text-left p-2 rounded-md hover:bg-muted flex items-center justify-between",
+                                                rate === playbackRate && "bg-muted"
+                                            )}
+                                        >
+                                            <span>{rate === 1 ? 'Normal' : `${rate}x`}</span>
+                                            {rate === playbackRate && <Check className="w-4 h-4" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="text-sm p-2 hover:bg-muted rounded-md cursor-pointer mt-2">Quality</p>
                         </PopoverContent>
                     </Popover>
                     <Button variant="ghost" size="icon" onClick={handleToggleFullScreen}>

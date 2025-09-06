@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { User, Heart, Transgender } from 'lucide-react';
 
 const SidebarSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="mb-8">
@@ -11,21 +14,36 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 );
 
 export default function SidebarContent() {
-  const [orientation, setOrientation] = useState('all');
   const tags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"];
+  const [types, setTypes] = useState<string[]>([]);
+
+  const handleTypeChange = (type: string) => {
+    setTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+  }
 
   return (
     <div className="space-y-8">
-      <SidebarSection title="Filter by Orientation">
-        <ul className="space-y-2">
-          {['All', 'Landscape', 'Portrait'].map((item) => (
-            <li key={item} 
-                onClick={() => setOrientation(item.toLowerCase())}
-                className={`text-sm cursor-pointer transition-colors ${orientation === item.toLowerCase() ? 'text-primary font-semibold' : 'text-foreground/80 hover:text-primary'}`}>
-              {item}
-            </li>
-          ))}
-        </ul>
+      <SidebarSection title="Filter by Type">
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox id="straight" checked={types.includes('straight')} onCheckedChange={() => handleTypeChange('straight')} />
+            <Label htmlFor="straight" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+              <User className="w-4 h-4" /> Straight
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="gay" checked={types.includes('gay')} onCheckedChange={() => handleTypeChange('gay')} />
+            <Label htmlFor="gay" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+              <Heart className="w-4 h-4" /> Gay
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox id="trans" checked={types.includes('trans')} onCheckedChange={() => handleTypeChange('trans')} />
+            <Label htmlFor="trans" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
+              <Transgender className="w-4 h-4" /> Trans
+            </Label>
+          </div>
+        </div>
       </SidebarSection>
       
       <SidebarSection title="Sort by">
