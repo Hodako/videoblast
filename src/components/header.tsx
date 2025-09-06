@@ -1,15 +1,18 @@
 'use client';
 import Link from 'next/link';
-import { Menu, Search, UserCircle } from 'lucide-react';
+import { Menu, Search, UserCircle, ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function Header() {
   const router = useRouter();
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -18,11 +21,23 @@ export default function Header() {
     if (query) {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     }
+    setIsMobileSearchOpen(false); // Close search on submit
   };
   
   const searchForm = (
-    <form onSubmit={handleSearch} className="relative">
-      <Input name="search" placeholder="Search..." className="bg-muted pr-10" />
+    <form onSubmit={handleSearch} className="relative w-full">
+       {isMobileSearchOpen && (
+         <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground"
+            onClick={() => setIsMobileSearchOpen(false)}
+        >
+            <ArrowLeft className="w-5 h-5" />
+        </Button>
+       )}
+      <Input name="search" placeholder="Search..." className={cn("bg-muted", isMobileSearchOpen ? 'pr-10 pl-10' : 'pr-10')} />
       <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground">
         <Search className="w-4 h-4" />
       </Button>
@@ -41,19 +56,25 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-card px-5 h-[60px] flex items-center justify-between border-b border-border">
-      <div className="flex items-center gap-8">
-        <Link href="/" className="text-2xl font-bold text-primary">
+    <header className="bg-card px-4 sm:px-5 h-[60px] flex items-center justify-between border-b border-border gap-4">
+       <div className={cn("flex items-center gap-8", { 'hidden': isMobileSearchOpen })}>
+         <Link href="/" className="text-2xl font-bold text-primary">
           VideoHub
         </Link>
         <nav className="hidden lg:flex gap-8 list-none">
           {navLinks}
         </nav>
       </div>
-      <div className="flex-1 max-w-md mx-5 hidden md:block">
+
+      <div className={cn("flex-1 max-w-md hidden md:block", { 'block w-full': isMobileSearchOpen, 'hidden': !isMobileSearchOpen && isMobileSearchOpen !== null })}>
         {searchForm}
       </div>
-      <div className="flex items-center gap-2">
+
+      <div className={cn("flex items-center gap-2", { 'hidden': isMobileSearchOpen })}>
+        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMobileSearchOpen(true)}>
+            <Search className="w-5 h-5"/>
+        </Button>
+
         <div className="hidden sm:flex items-center gap-2">
           <Button asChild variant="outline">
             <Link href="/login">Login</Link>
