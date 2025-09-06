@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Menu, Search, UserCircle, ArrowLeft, Film } from 'lucide-react';
+import { Menu, Search, UserCircle, ArrowLeft, Film, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
@@ -99,6 +99,13 @@ export default function Header() {
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
+        
+        <Link href="/admin">
+          <Button variant="ghost" size="icon">
+            <Settings />
+          </Button>
+        </Link>
+
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>

@@ -14,6 +14,7 @@ This document outlines the requirements for the backend service that will power 
         -   `email` (VARCHAR, UNIQUE, NOT NULL)
         -   `password_hash` (VARCHAR, NOT NULL)
         -   `created_at` (TIMESTAMP, default NOW())
+        -   `role` (VARCHAR, default 'user') -- Add for admin access
     -   `videos`:
         -   `id` (SERIAL PRIMARY KEY)
         -   `title` (VARCHAR)
@@ -21,21 +22,44 @@ This document outlines the requirements for the backend service that will power 
         -   `duration` (VARCHAR)
         -   `views` (VARCHAR)
         -   `uploaded` (VARCHAR)
-        -   `thumbnail` (VARCHAR)
-        -   `image_url` (VARCHAR)
+        -   `thumbnail_url` (VARCHAR)
         -   `video_url` (VARCHAR, NOT NULL)
         -   `subtitle` (VARCHAR)
         -   `uploader_id` (INTEGER, REFERENCES users(id))
+        -   `tags` (TEXT[])
+        -   `meta_data` (JSONB)
+        -   `display_order` (INTEGER)
+    -   `shorts`:
+        -   `id` (SERIAL PRIMARY KEY)
+        -   `title` (VARCHAR)
+        -   `video_url` (VARCHAR, NOT NULL)
+        -   `thumbnail_url` (VARCHAR)
+        -   `views` (VARCHAR)
+    -   `images`:
+        -   `id` (SERIAL PRIMARY KEY)
+        -   `title` (VARCHAR)
+        -   `image_url` (VARCHAR, NOT NULL)
+    -   `playlists`:
+        -   `id` (SERIAL PRIMARY KEY)
+        -   `name` (VARCHAR, NOT NULL)
+        -   `user_id` (INTEGER, REFERENCES users(id))
+    -   `playlist_videos`:
+        -   `playlist_id` (INTEGER, REFERENCES playlists(id))
+        -   `video_id` (INTEGER, REFERENCES videos(id))
+        -   PRIMARY KEY (`playlist_id`, `video_id`)
     -   `comments`:
         -   `id` (SERIAL PRIMARY KEY)
         -   `text` (TEXT, NOT NULL)
         -   `user_id` (INTEGER, REFERENCES users(id))
         -   `video_id` (INTEGER, REFERENCES videos(id))
         -   `created_at` (TIMESTAMP, default NOW())
+    -   `site_settings`:
+        -   `key` (VARCHAR, PRIMARY KEY)
+        -   `value` (JSONB)
 
 ## 2. API Endpoints
 
-The backend should expose a RESTful API to interact with the frontend.
+The backend should expose a RESTful API to interact with the frontend. All `/api/admin` routes should be protected and only accessible by users with the `admin` role.
 
 ### 2.1. Authentication
 
@@ -51,37 +75,49 @@ The backend should expose a RESTful API to interact with the frontend.
 
 ### 2.2. Videos
 
--   **`GET /api/videos`**:
-    -   **Functionality:** Fetch all videos from the `videos` table.
-    -   **Response:** `[ { video1_data }, { video2_data }, ... ]`
-
--   **`GET /api/videos/:id`**:
-    -   **Functionality:** Fetch a single video by its ID.
-    -   **Response:** `{ video_data }`
-
--   **`GET /api/videos/search?q=:query`**:
-    -   **Functionality:** Search for videos where the title, description, or subtitle matches the query.
-    -   **Response:** `[ { video1_data }, { video2_data }, ... ]`
+-   **`GET /api/videos`**: Fetch all videos, ordered by `display_order`.
+-   **`GET /api/videos/:id`**: Fetch a single video by its ID.
+-   **`GET /api/videos/search?q=:query`**: Search for videos.
 
 ### 2.3. Comments
 
--   **`GET /api/videos/:videoId/comments`**:
-    -   **Functionality:** Fetch all comments for a specific video, joining with the `users` table to get commenter information.
-    -   **Response:** `[ { id, text, createdAt, user: { firstName, lastName, avatar } }, ... ]`
+-   **`GET /api/videos/:videoId/comments`**: Fetch all comments for a specific video.
+-   **`POST /api/videos/:videoId/comments`**: Add a new comment (Requires Auth).
 
--   **`POST /api/videos/:videoId/comments`**:
-    -   **Functionality:** Add a new comment to a video. Requires authentication (JWT token).
-    -   **Request Body:** `{ text }`
-    -   **Response:** `{ new_comment_data }`
+### 2.4. Admin - Dashboard
+
+-   **`GET /api/admin/stats`**:
+    -   **Functionality:** Fetch aggregate data for the dashboard (e.g., total revenue, subscribers, video counts, views).
+    -   **Response:** `{ totalRevenue, newSubscribers, totalVideos, totalViews, monthlyData: [...] }`
+
+### 2.5. Admin - Content Management (Videos, Shorts, Images, Playlists)
+
+-   **`POST /api/admin/videos`**: Add a new video.
+-   **`PUT /api/admin/videos/:id`**: Update an existing video.
+-   **`DELETE /api/admin/videos/:id`**: Delete a video.
+-   **`POST /api/admin/shorts`**: Add a new short.
+-   **`DELETE /api/admin/shorts/:id`**: Delete a short.
+-   **`POST /api/admin/images`**: Add a new image.
+-   **`DELETE /api/admin/images/:id`**: Delete an image.
+-   **`POST /api/admin/playlists`**: Create a new playlist.
+-   **`PUT /api/admin/playlists/:id`**: Update a playlist (e.g., add/remove videos).
+-   **`DELETE /api/admin/playlists/:id`**: Delete a playlist.
+
+### 2.6. Admin - Customization
+
+-   **`GET /api/settings`**:
+    -   **Functionality:** Fetch current site settings (theme, banner text, etc.) from the `site_settings` table.
+    -   **Response:** `{ theme: { primaryColor, accentColor, fontFamily }, bannerText: '...' }`
+-   **`PUT /api/admin/settings`**:
+    -   **Request Body:** `{ key, value }`
+    -   **Functionality:** Update a specific setting in the `site_settings` table.
+-   **`PUT /api/admin/videos/reorder`**:
+    -   **Request Body:** `[{ id: 1, order: 0 }, { id: 2, order: 1 }, ...]`
+    -   **Functionality:** Update the `display_order` for all videos based on the provided array.
 
 ## 3. Frontend Interaction
 
 The Next.js frontend will use `fetch` or a library like `axios` to make requests to these endpoints.
 
--   **Login/Signup:** The forms will post data to the `/api/auth/` endpoints. Upon successful login, the received JWT will be stored in `localStorage` or a secure cookie and sent in the `Authorization` header for protected requests.
--   **Video Pages:** The pages will fetch data from `/api/videos` and `/api/videos/:id`. The search page will use `/api/videos/search`.
--   **Comments:** The watch page will fetch comments and allow authenticated users to post new ones.
-
-## 4. Data Seeding
-
-Create a script to populate the `videos` table with the initial video data provided in the user's first prompt. This script should be run once to set up the database for development.
+-   **JWT Management:** Upon successful login, the received JWT will be stored in `localStorage` or a secure cookie and sent in the `Authorization: Bearer <token>` header for all protected requests (especially to `/api/admin/*` routes).
+-   **Admin Panel:** The admin pages will make CRUD requests to the `/api/admin/*` endpoints to manage content and settings. For example, the "Add Video" form will `POST` to `/api/admin/videos`. The theme settings form will `PUT` to `/api/admin/settings`.
