@@ -108,9 +108,6 @@ export default function Header() {
                 <VisuallyHidden>
                   <SheetTitle>Mobile Navigation</SheetTitle>
                 </VisuallyHidden>
-                <div className="md:hidden my-4">
-                  {searchForm}
-                </div>
                 <div className="flex flex-col gap-4 mt-8">
                   {navLinks}
                 </div>
