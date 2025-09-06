@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function WatchPage() {
   const params = useParams();
@@ -25,6 +26,7 @@ export default function WatchPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -237,19 +239,21 @@ export default function WatchPage() {
                     <Button variant="ghost" size="icon" onClick={handlePlayPause}>
                       {isPlaying ? <Pause /> : <Play />}
                     </Button>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={handleToggleMute}>
-                        {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
-                      </Button>
-                      <Slider
-                        min={0}
-                        max={1}
-                        step={0.1}
-                        value={[isMuted ? 0 : volume]}
-                        onValueChange={handleVolumeChange}
-                        className="w-24"
-                      />
-                    </div>
+                    {!isMobile && (
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={handleToggleMute}>
+                          {isMuted || volume === 0 ? <VolumeX /> : <Volume2 />}
+                        </Button>
+                        <Slider
+                          min={0}
+                          max={1}
+                          step={0.1}
+                          value={[isMuted ? 0 : volume]}
+                          onValueChange={handleVolumeChange}
+                          className="w-24"
+                        />
+                      </div>
+                    )}
                     <div className="text-sm">
                       {formatTime(currentTime)} / {formatTime(duration)}
                     </div>
