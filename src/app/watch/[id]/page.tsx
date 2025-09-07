@@ -50,7 +50,7 @@ export default function WatchPage() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -83,24 +83,22 @@ export default function WatchPage() {
       const newVolume = value[0];
       videoRef.current.volume = newVolume;
       setVolume(newVolume);
+      videoRef.current.muted = newVolume === 0;
       setIsMuted(newVolume === 0);
     }
   };
   
   const handleToggleMute = useCallback(() => {
     if (videoRef.current) {
-        const currentVolume = videoRef.current.volume;
-        if (isMuted || currentVolume === 0) {
-            const newVolume = volume > 0 ? volume : 1;
-            videoRef.current.volume = newVolume;
-            setVolume(newVolume);
-            setIsMuted(false);
-        } else {
-            videoRef.current.volume = 0;
-            setIsMuted(true);
+        const newMuted = !videoRef.current.muted;
+        videoRef.current.muted = newMuted;
+        setIsMuted(newMuted);
+        if(!newMuted && videoRef.current.volume === 0) {
+           videoRef.current.volume = 1;
+           setVolume(1);
         }
     }
-  }, [isMuted, volume]);
+  }, []);
 
   const handleProgressChange = (value: number[]) => {
     if (videoRef.current) {
@@ -148,7 +146,15 @@ export default function WatchPage() {
 
     video.addEventListener('timeupdate', updateProgress);
     video.addEventListener('loadedmetadata', setVideoDuration);
-    video.play();
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    
+    video.play().catch(() => {
+        setIsPlaying(false);
+    });
 
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
@@ -184,6 +190,8 @@ export default function WatchPage() {
     return () => {
       video.removeEventListener('timeupdate', updateProgress);
       video.removeEventListener('loadedmetadata', setVideoDuration);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -226,6 +234,8 @@ export default function WatchPage() {
               src={video.videoUrl}
               className="w-full h-full"
               onClick={handlePlayPause}
+              autoPlay
+              muted={isMuted}
             />
             <div 
               className={cn(
@@ -374,3 +384,5 @@ export default function WatchPage() {
     </div>
   );
 }
+
+    
