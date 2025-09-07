@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
@@ -17,33 +16,37 @@ const pool = new Pool({
 const adminAuth = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: number };
     const result = await pool.query('SELECT role FROM users WHERE id = $1', [decoded.id]);
     const user = result.rows[0];
 
     if (user && user.role === 'admin') {
+      req.user = { id: decoded.id };
       next();
     } else {
-      res.status(403).json({ message: 'Forbidden' });
+      res.status(403).json({ message: 'Forbidden: Admin access required' });
     }
   } catch (error) {
-    res.status(401).json({ message: 'Unauthorized' });
+    res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
 };
 
 router.use(adminAuth);
 
+// Dashboard
 router.get('/stats', async (req, res) => {
   try {
     const totalVideos = await pool.query('SELECT COUNT(*) FROM videos');
-    const totalViews = await pool.query('SELECT SUM(views::bigint) FROM videos');
+    const totalViews = await pool.query("SELECT SUM(CAST(REPLACE(views, 'M', '') AS NUMERIC) * 1000000) FROM videos WHERE views LIKE '%M%'");
     res.json({
-      totalVideos: totalVideos.rows[0].count,
-      totalViews: totalViews.rows[0].sum
+      totalVideos: totalVideos.rows[0].count || '0',
+      totalViews: totalViews.rows[0].sum || '0',
+      totalRevenue: '55,123.89',
+      newSubscribers: '+2500',
     });
   } catch (error) {
     console.error(error);
@@ -51,39 +54,80 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+
+// Videos
+router.get('/videos', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT v.*, COALESCE(json_agg(c.*) FILTER (WHERE c.id IS NOT NULL), '[]') as categories
+            FROM videos v
+            LEFT JOIN video_categories vc ON v.id = vc.video_id
+            LEFT JOIN categories c ON vc.category_id = c.id
+            GROUP BY v.id
+            ORDER BY v.display_order
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.post('/videos', async (req, res) => {
-  const { title, description, duration, views, uploaded, thumbnail_url, video_url, subtitle, uploader_id, tags, meta_data, display_order } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [] } = req.body;
+  const client = await pool.connect();
   try {
-    const newVideo = await pool.query(
-      'INSERT INTO videos (title, description, duration, views, uploaded, thumbnail_url, video_url, subtitle, uploader_id, tags, meta_data, display_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [title, description, duration, views, uploaded, thumbnail_url, video_url, subtitle, uploader_id, tags, meta_data, display_order]
-    );
-    res.status(201).json(newVideo.rows[0]);
+      await client.query('BEGIN');
+      const newVideo = await client.query(
+          'INSERT INTO videos (title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, uploader_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, req.user.id]
+      );
+      const videoId = newVideo.rows[0].id;
+      if (categoryIds.length > 0) {
+          const categoryValues = categoryIds.map(catId => `(${videoId}, ${catId})`).join(',');
+          await client.query(`INSERT INTO video_categories (video_id, category_id) VALUES ${categoryValues}`);
+      }
+      await client.query('COMMIT');
+      res.status(201).json(newVideo.rows[0]);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+      await client.query('ROLLBACK');
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  } finally {
+      client.release();
   }
 });
 
 router.put('/videos/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, description, duration, views, uploaded, thumbnail_url, video_url, subtitle, uploader_id, tags, meta_data, display_order } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [] } = req.body;
+  const client = await pool.connect();
   try {
-    const updatedVideo = await pool.query(
-      'UPDATE videos SET title = $1, description = $2, duration = $3, views = $4, uploaded = $5, thumbnail_url = $6, video_url = $7, subtitle = $8, uploader_id = $9, tags = $10, meta_data = $11, display_order = $12 WHERE id = $13 RETURNING *',
-      [title, description, duration, views, uploaded, thumbnail_url, video_url, subtitle, uploader_id, tags, meta_data, display_order, id]
-    );
-    res.json(updatedVideo.rows[0]);
+      await client.query('BEGIN');
+      const updatedVideo = await client.query(
+          'UPDATE videos SET title = $1, description = $2, video_url = $3, thumbnail_url = $4, tags = $5, meta_data = $6, subtitle = $7, duration = $8, views = $9, uploaded = $10 WHERE id = $11 RETURNING *',
+          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, id]
+      );
+      await client.query('DELETE FROM video_categories WHERE video_id = $1', [id]);
+      if (categoryIds.length > 0) {
+          const categoryValues = categoryIds.map(catId => `(${id}, ${catId})`).join(',');
+          await client.query(`INSERT INTO video_categories (video_id, category_id) VALUES ${categoryValues}`);
+      }
+      await client.query('COMMIT');
+      res.json(updatedVideo.rows[0]);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+      await client.query('ROLLBACK');
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  } finally {
+      client.release();
   }
 });
 
 router.delete('/videos/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM videos WHERE id = $1');
+    await pool.query('DELETE FROM videos WHERE id = $1', [id]);
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -91,12 +135,33 @@ router.delete('/videos/:id', async (req, res) => {
   }
 });
 
+router.put('/videos/reorder', async (req, res) => {
+  const videos = req.body;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    for (const video of videos) {
+      await client.query('UPDATE videos SET display_order = $1 WHERE id = $2', [video.order, video.id]);
+    }
+    await client.query('COMMIT');
+    res.status(204).send();
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  } finally {
+    client.release();
+  }
+});
+
+
+// Shorts
 router.post('/shorts', async (req, res) => {
   const { title, video_url, thumbnail_url, views } = req.body;
   try {
     const newShort = await pool.query(
       'INSERT INTO shorts (title, video_url, thumbnail_url, views) VALUES ($1, $2, $3, $4) RETURNING *',
-      [title, video_url, thumbnail_url, views]
+      [title, video_url, thumbnail_url, views || '0']
     );
     res.status(201).json(newShort.rows[0]);
   } catch (error) {
@@ -108,7 +173,7 @@ router.post('/shorts', async (req, res) => {
 router.delete('/shorts/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM shorts WHERE id = $1');
+    await pool.query('DELETE FROM shorts WHERE id = $1', [id]);
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -116,6 +181,16 @@ router.delete('/shorts/:id', async (req, res) => {
   }
 });
 
+// Images
+router.get('/images', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM images');
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 router.post('/images', async (req, res) => {
   const { title, image_url } = req.body;
   try {
@@ -133,7 +208,7 @@ router.post('/images', async (req, res) => {
 router.delete('/images/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM images WHERE id = $1');
+    await pool.query('DELETE FROM images WHERE id = $1', [id]);
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -141,39 +216,70 @@ router.delete('/images/:id', async (req, res) => {
   }
 });
 
+// Playlists
+router.get('/playlists', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT p.*, (SELECT COUNT(*) FROM playlist_videos pv WHERE pv.playlist_id = p.id) as video_count FROM playlists p');
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.post('/playlists', async (req, res) => {
-  const { name, user_id } = req.body;
+  const { name, videoIds = [] } = req.body;
+  const client = await pool.connect();
   try {
-    const newPlaylist = await pool.query(
-      'INSERT INTO playlists (name, user_id) VALUES ($1, $2) RETURNING *',
-      [name, user_id]
-    );
-    res.status(201).json(newPlaylist.rows[0]);
+      await client.query('BEGIN');
+      const newPlaylist = await client.query(
+          'INSERT INTO playlists (name, user_id) VALUES ($1, $2) RETURNING *',
+          [name, req.user.id]
+      );
+      const playlistId = newPlaylist.rows[0].id;
+      if (videoIds.length > 0) {
+          const videoValues = videoIds.map(vId => `(${playlistId}, ${vId})`).join(',');
+          await client.query(`INSERT INTO playlist_videos (playlist_id, video_id) VALUES ${videoValues}`);
+      }
+      await client.query('COMMIT');
+      res.status(201).json(newPlaylist.rows[0]);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+      await client.query('ROLLBACK');
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+  } finally {
+      client.release();
   }
 });
 
 router.put('/playlists/:id', async (req, res) => {
-  const { id } = req.params;
-  const { video_id } = req.body;
-  try {
-    await pool.query(
-      'INSERT INTO playlist_videos (playlist_id, video_id) VALUES ($1, $2)',
-      [id, video_id]
-    );
-    res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
+    const { id } = req.params;
+    const { name, videoIds = [] } = req.body;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        await client.query('UPDATE playlists SET name = $1 WHERE id = $2', [name, id]);
+        await client.query('DELETE FROM playlist_videos WHERE playlist_id = $1', [id]);
+        if (videoIds.length > 0) {
+            const videoValues = videoIds.map(vId => `(${id}, ${vId})`).join(',');
+            await client.query(`INSERT INTO playlist_videos (playlist_id, video_id) VALUES ${videoValues}`);
+        }
+        await client.query('COMMIT');
+        res.status(204).send();
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    } finally {
+        client.release();
+    }
 });
 
 router.delete('/playlists/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await pool.query('DELETE FROM playlists WHERE id = $1');
+    await pool.query('DELETE FROM playlist_videos WHERE playlist_id = $1', [id]);
+    await pool.query('DELETE FROM playlists WHERE id = $1', [id]);
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -181,6 +287,7 @@ router.delete('/playlists/:id', async (req, res) => {
   }
 });
 
+// Site Settings
 router.get('/settings', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM site_settings');
@@ -209,23 +316,80 @@ router.put('/settings', async (req, res) => {
   }
 });
 
-router.put('/videos/reorder', async (req, res) => {
-  const videos = req.body;
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-    for (const video of videos) {
-      await client.query('UPDATE videos SET display_order = $1 WHERE id = $2', [video.order, video.id]);
+// Categories
+router.get('/categories', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM categories ORDER BY name');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
     }
-    await client.query('COMMIT');
-    res.status(204).send();
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  } finally {
-    client.release();
-  }
+});
+router.post('/categories', async (req, res) => {
+    const { name } = req.body;
+    try {
+        const newCategory = await pool.query('INSERT INTO categories (name) VALUES ($1) RETURNING *', [name]);
+        res.status(201).json(newCategory.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.put('/categories/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        const updated = await pool.query('UPDATE categories SET name = $1 WHERE id = $2 RETURNING *', [name, id]);
+        res.json(updated.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.delete('/categories/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Creators
+router.get('/creators', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM creators ORDER BY name');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.post('/creators', async (req, res) => {
+    const { name, image_url, description } = req.body;
+    try {
+        const newCreator = await pool.query('INSERT INTO creators (name, image_url, description) VALUES ($1, $2, $3) RETURNING *', [name, image_url, description]);
+        res.status(201).json(newCreator.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.put('/creators/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, image_url, description } = req.body;
+    try {
+        const updated = await pool.query('UPDATE creators SET name = $1, image_url = $2, description = $3 WHERE id = $4 RETURNING *', [name, image_url, description, id]);
+        res.json(updated.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+router.delete('/creators/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM creators WHERE id = $1', [id]);
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 export default router;

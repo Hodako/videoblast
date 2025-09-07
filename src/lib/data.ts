@@ -1,5 +1,5 @@
-
-const API_URL = 'http://localhost:3001/api';
+// src/lib/data.ts
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export async function getVideos() {
   const response = await fetch(`${API_URL}/videos`);
@@ -26,57 +26,61 @@ export const getComments = async (videoId: number) => {
   return response.json();
 };
   
-  export const getAdminDashboardData = async () => {
+export const getAdminDashboardData = async () => {
     const response = await fetch(`${API_URL}/admin/stats`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     return response.json();
-  };
+};
   
-  export const getAdminVideos = async () => {
-    const response = await fetch(`${API_URL}/videos`, {
+export const getAdminVideos = async () => {
+    const response = await fetch(`${API_URL}/admin/videos`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     return response.json();
-  };
+};
   
-  export const getAdminShorts = async () => {
+export const getAdminShorts = async () => {
     const response = await fetch(`${API_URL}/shorts`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     return response.json();
-  };
+};
   
-  export const getAdminImages = async () => {
+export const getAdminImages = async () => {
     const response = await fetch(`${API_URL}/admin/images`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     return response.json();
-  };
+};
   
-  export const getAdminPlaylists = async () => {
+export const getAdminPlaylists = async () => {
     const response = await fetch(`${API_URL}/admin/playlists`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     return response.json();
-  };
+};
   
-  export const getSiteSettings = async () => {
-    const response = await fetch(`${API_URL}/settings`);
+export const getSiteSettings = async () => {
+    const response = await fetch(`${API_URL}/admin/settings`, {
+         headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
     return response.json();
-  };
+};
   
-  export const updateSiteSettings = async (settings: any) => {
+export const updateSiteSettings = async (settings: any) => {
     const response = await fetch(`${API_URL}/admin/settings`, {
       method: 'PUT',
       headers: {
@@ -85,10 +89,11 @@ export const getComments = async (videoId: number) => {
       },
       body: JSON.stringify(settings)
     });
-    return response.json();
+    if(!response.ok) throw new Error("Failed to update settings");
+    return;
   };
   
-  export const reorderVideos = async (orderedVideos: any[]) => {
+export const reorderVideos = async (orderedVideos: any[]) => {
     const response = await fetch(`${API_URL}/admin/videos/reorder`, {
       method: 'PUT',
       headers: {
@@ -97,10 +102,11 @@ export const getComments = async (videoId: number) => {
       },
       body: JSON.stringify(orderedVideos)
     });
-    return response.json();
-  };
+    if(!response.ok) throw new Error("Failed to reorder videos");
+    return;
+};
   
-  export const addVideo = async (video: any) => {
+export const addVideo = async (video: any) => {
     const response = await fetch(`${API_URL}/admin/videos`, {
       method: 'POST',
       headers: {
@@ -110,9 +116,9 @@ export const getComments = async (videoId: number) => {
       body: JSON.stringify(video)
     });
     return response.json();
-  };
+};
   
-  export const updateVideo = async (video: any) => {
+export const updateVideo = async (video: any) => {
     const response = await fetch(`${API_URL}/admin/videos/${video.id}`, {
       method: 'PUT',
       headers: {
@@ -122,19 +128,19 @@ export const getComments = async (videoId: number) => {
       body: JSON.stringify(video)
     });
     return response.json();
-  };
+};
   
-  export const deleteVideo = async (id: number) => {
-    const response = await fetch(`${API_URL}/admin/videos/${id}`, {
+export const deleteVideo = async (id: number) => {
+    await fetch(`${API_URL}/admin/videos/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    return response.json();
-  };
+    return;
+};
   
-  export const addShort = async (short: any) => {
+export const addShort = async (short: any) => {
     const response = await fetch(`${API_URL}/admin/shorts`, {
       method: 'POST',
       headers: {
@@ -144,19 +150,19 @@ export const getComments = async (videoId: number) => {
       body: JSON.stringify(short)
     });
     return response.json();
-  };
+};
   
-  export const deleteShort = async (id: number) => {
-    const response = await fetch(`${API_URL}/admin/shorts/${id}`, {
+export const deleteShort = async (id: number) => {
+    await fetch(`${API_URL}/admin/shorts/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    return response.json();
-  };
+    return;
+};
   
-  export const addImage = async (image: any) => {
+export const addImage = async (image: any) => {
     const response = await fetch(`${API_URL}/admin/images`, {
       method: 'POST',
       headers: {
@@ -166,19 +172,19 @@ export const getComments = async (videoId: number) => {
       body: JSON.stringify(image)
     });
     return response.json();
-  };
+};
   
-  export const deleteImage = async (id: number) => {
-    const response = await fetch(`${API_URL}/admin/images/${id}`, {
+export const deleteImage = async (id: number) => {
+    await fetch(`${API_URL}/admin/images/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
-    return response.json();
-  };
+    return;
+};
   
-  export const addPlaylist = async (playlist: any) => {
+export const addPlaylist = async (playlist: any) => {
     const response = await fetch(`${API_URL}/admin/playlists`, {
       method: 'POST',
       headers: {
@@ -188,10 +194,10 @@ export const getComments = async (videoId: number) => {
       body: JSON.stringify(playlist)
     });
     return response.json();
-  };
+};
   
-  export const updatePlaylist = async (playlist: any) => {
-    const response = await fetch(`${API_URL}/admin/playlists/${playlist.id}` , {
+export const updatePlaylist = async (playlist: any) => {
+    await fetch(`${API_URL}/admin/playlists/${playlist.id}` , {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -199,15 +205,119 @@ export const getComments = async (videoId: number) => {
       },
       body: JSON.stringify(playlist)
     });
-    return response.json();
-  };
+    return;
+};
   
-  export const deletePlaylist = async (id: number) => {
-    const response = await fetch(`${API_URL}/admin/playlists/${id}`, {
+export const deletePlaylist = async (id: number) => {
+    await fetch(`${API_URL}/admin/playlists/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
+    return;
+};
+
+// Categories
+export async function getCategories() {
+  const response = await fetch(`${API_URL}/categories`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch categories');
+  }
+  return response.json();
+}
+
+export const getAdminCategories = async () => {
+    const response = await fetch(`${API_URL}/admin/categories`, {
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+    });
+    if (!response.ok) throw new Error('Failed to fetch categories');
     return response.json();
-  };
+};
+
+export const addCategory = async (category: any) => {
+    const response = await fetch(`${API_URL}/admin/categories`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(category)
+    });
+    if (!response.ok) throw new Error('Failed to add category');
+    return response.json();
+};
+
+export const updateCategory = async (category: any) => {
+    const response = await fetch(`${API_URL}/admin/categories/${category.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(category)
+    });
+    if (!response.ok) throw new Error('Failed to update category');
+    return response.json();
+};
+
+export const deleteCategory = async (id: number) => {
+    const response = await fetch(`${API_URL}/admin/categories/${id}`, {
+        method: 'DELETE',
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+    });
+    if (!response.ok) throw new Error('Failed to delete category');
+    return;
+};
+
+// Creators
+export async function getCreators() {
+  const response = await fetch(`${API_URL}/creators`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch creators');
+  }
+  return response.json();
+}
+
+export const getAdminCreators = async () => {
+    const response = await fetch(`${API_URL}/admin/creators`, {
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+    });
+    if (!response.ok) throw new Error('Failed to fetch creators');
+    return response.json();
+};
+
+export const addCreator = async (creator: any) => {
+    const response = await fetch(`${API_URL}/admin/creators`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(creator)
+    });
+    if (!response.ok) throw new Error('Failed to add creator');
+    return response.json();
+};
+
+export const updateCreator = async (creator: any) => {
+    const response = await fetch(`${API_URL}/admin/creators/${creator.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(creator)
+    });
+    if (!response.ok) throw new Error('Failed to update creator');
+    return response.json();
+};
+
+export const deleteCreator = async (id: number) => {
+    const response = await fetch(`${API_URL}/admin/creators/${id}`, {
+        method: 'DELETE',
+        headers: {'Authorization': `Bearer ${localStorage.getItem('token')}`}
+    });
+    if (!response.ok) throw new Error('Failed to delete creator');
+    return;
+};

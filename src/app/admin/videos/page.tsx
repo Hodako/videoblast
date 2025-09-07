@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAdminVideos, addVideo, updateVideo, deleteVideo } from "@/lib/data";
+import { getAdminVideos, addVideo, updateVideo, deleteVideo, getAdminCategories } from "@/lib/data";
 import { PlusCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AdminVideosPage() {
   const { toast } = useToast();
   const [videos, setVideos] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentVideo, setCurrentVideo] = useState({
@@ -29,6 +31,7 @@ export default function AdminVideosPage() {
     duration: '0:00',
     views: '0',
     uploaded: new Date().toLocaleDateString(),
+    categoryIds: [],
   });
 
   const fetchVideos = async () => {
@@ -39,9 +42,19 @@ export default function AdminVideosPage() {
       toast({ variant: "destructive", title: "Error", description: "Failed to load videos." });
     }
   };
+  
+  const fetchCategories = async () => {
+    try {
+      const data = await getAdminCategories();
+      setCategories(data);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to load categories." });
+    }
+  };
 
   useEffect(() => {
     fetchVideos();
+    fetchCategories();
   }, []);
 
   const handleOpenDialog = (video = null) => {
@@ -50,7 +63,8 @@ export default function AdminVideosPage() {
       setCurrentVideo({
         ...video,
         tags: Array.isArray(video.tags) ? video.tags.join(', ') : '',
-        meta_data: video.meta_data ? JSON.stringify(video.meta_data) : ''
+        meta_data: video.meta_data ? JSON.stringify(video.meta_data) : '',
+        categoryIds: video.categories?.map(c => c.id) || []
       });
     } else {
       setIsEditing(false);
@@ -66,6 +80,7 @@ export default function AdminVideosPage() {
         duration: '0:00',
         views: '0',
         uploaded: new Date().toLocaleDateString(),
+        categoryIds: [],
       });
     }
     setIsDialogOpen(true);
@@ -75,7 +90,7 @@ export default function AdminVideosPage() {
     const videoPayload = {
       ...currentVideo,
       tags: currentVideo.tags.split(',').map(tag => tag.trim()),
-      meta_data: currentVideo.meta_data ? JSON.parse(currentVideo.meta_data) : {}
+      meta_data: currentVideo.meta_data ? JSON.parse(currentVideo.meta_data) : {},
     };
 
     try {
@@ -108,6 +123,15 @@ export default function AdminVideosPage() {
     setCurrentVideo(prev => ({ ...prev, [id]: value }));
   };
 
+  const handleCategoryChange = (categoryId, checked) => {
+    setCurrentVideo(prev => {
+        const newCategoryIds = checked
+            ? [...prev.categoryIds, categoryId]
+            : prev.categoryIds.filter(id => id !== categoryId);
+        return { ...prev, categoryIds: newCategoryIds };
+    });
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -116,7 +140,7 @@ export default function AdminVideosPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Edit Video' : 'Add New Video'}</DialogTitle>
           </DialogHeader>
@@ -140,6 +164,21 @@ export default function AdminVideosPage() {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="tags" className="text-right">Tags</Label>
               <Input id="tags" value={currentVideo.tags} onChange={handleInputChange} placeholder="e.g. tech, comedy, gaming" className="col-span-3" />
+            </div>
+             <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right pt-2">Categories</Label>
+                <div className="col-span-3 space-y-2 max-h-40 overflow-y-auto border p-2 rounded-md">
+                    {categories.map((category: any) => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                            <Checkbox
+                                id={`cat-${category.id}`}
+                                checked={currentVideo.categoryIds.includes(category.id)}
+                                onCheckedChange={(checked) => handleCategoryChange(category.id, checked)}
+                            />
+                            <Label htmlFor={`cat-${category.id}`}>{category.name}</Label>
+                        </div>
+                    ))}
+                </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="meta_data" className="text-right">Meta Data (JSON)</Label>

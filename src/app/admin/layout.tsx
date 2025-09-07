@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Settings, Video, Film, Image as ImageIcon, BarChart2, List } from 'lucide-react';
+import { Home, Settings, Video, Film, Image as ImageIcon, BarChart2, List, User, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
 import { useEffect, useState } from 'react';
@@ -13,6 +13,8 @@ const adminNavItems = [
   { href: '/admin/shorts', label: 'Shorts', icon: Film },
   { href: '/admin/images', label: 'Images', icon: ImageIcon },
   { href: '/admin/playlists', label: 'Playlists', icon: List },
+  { href: '/admin/categories', label: 'Categories', icon: Tag },
+  { href: '/admin/creators', label: 'Creators', icon: User },
   { href: '/admin/customize', label: 'Customize', icon: Settings },
 ];
 

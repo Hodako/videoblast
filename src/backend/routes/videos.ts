@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
@@ -54,7 +53,7 @@ router.get('/search', async (req, res) => {
 router.get('/:videoId/comments', async (req, res) => {
   const { videoId } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM comments WHERE video_id = $1', [videoId]);
+    const result = await pool.query('SELECT c.*, u.first_name, u.last_name FROM comments c JOIN users u ON c.user_id = u.id WHERE video_id = $1 ORDER BY c.created_at DESC', [videoId]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -64,7 +63,9 @@ router.get('/:videoId/comments', async (req, res) => {
 
 router.post('/:videoId/comments', async (req, res) => {
   const { videoId } = req.params;
-  const { text, userId } = req.body;
+  // This should be an authenticated route in a real app
+  // const { userId } = req.user; 
+  const { text, userId } = req.body; 
 
   if (!text || !userId) {
     return res.status(400).json({ message: 'All fields are required' });
