@@ -50,7 +50,7 @@ export default function WatchPage() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -152,9 +152,7 @@ export default function WatchPage() {
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     
-    video.play().catch(() => {
-        setIsPlaying(false);
-    });
+    // Autoplay is handled by the autoPlay prop on the video element
 
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
@@ -231,7 +229,7 @@ export default function WatchPage() {
           >
             <video
               ref={videoRef}
-              src={video.videoUrl}
+              src={video.video_url}
               className="w-full h-full"
               onClick={handlePlayPause}
               autoPlay
@@ -384,5 +382,3 @@ export default function WatchPage() {
     </div>
   );
 }
-
-    

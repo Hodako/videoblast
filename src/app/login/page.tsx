@@ -39,10 +39,11 @@ export default function LoginPage() {
       router.push('/');
       router.refresh(); 
     } else {
+      const errorData = await response.json();
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Invalid credentials. Please try again.",
+        description: errorData.message || "Invalid credentials. Please try again.",
       })
       console.error('Login failed');
     }

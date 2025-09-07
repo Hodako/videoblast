@@ -1,15 +1,55 @@
 // src/app/admin/shorts/page.tsx
 'use client'
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { shorts } from "@/lib/data";
+import { getAdminShorts, addShort, deleteShort } from "@/lib/data";
 import { PlusCircle, Edit, Trash } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminShortsPage() {
+  const { toast } = useToast();
+  const [shorts, setShorts] = useState([]);
+  const [newShort, setNewShort] = useState({ title: '', video_url: '', thumbnail_url: '' });
+
+  const fetchShorts = async () => {
+    try {
+      const data = await getAdminShorts();
+      setShorts(data);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to load shorts." });
+    }
+  };
+
+  useEffect(() => {
+    fetchShorts();
+  }, []);
+
+  const handleAddShort = async () => {
+    try {
+      await addShort(newShort);
+      setNewShort({ title: '', video_url: '', thumbnail_url: '' });
+      fetchShorts();
+      toast({ title: "Success", description: "Short added." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to add short." });
+    }
+  };
+
+  const handleDeleteShort = async (id: number) => {
+    try {
+      await deleteShort(id);
+      fetchShorts();
+      toast({ title: "Success", description: "Short deleted." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete short." });
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -25,17 +65,17 @@ export default function AdminShortsPage() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="title" className="text-right">Title</Label>
-                <Input id="title" placeholder="Shorts Title" className="col-span-3" />
+                <Input id="title" value={newShort.title} onChange={(e) => setNewShort({...newShort, title: e.target.value})} placeholder="Shorts Title" className="col-span-3" />
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="video-src" className="text-right">Video URL</Label>
-                <Input id="video-src" placeholder="https://example.com/video.mp4" className="col-span-3" />
+                <Input id="video-src" value={newShort.video_url} onChange={(e) => setNewShort({...newShort, video_url: e.target.value})} placeholder="https://example.com/video.mp4" className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="thumbnail-url" className="text-right">Thumbnail URL</Label>
-                <Input id="thumbnail-url" placeholder="https://example.com/image.jpg" className="col-span-3" />
+                <Input id="thumbnail-url" value={newShort.thumbnail_url} onChange={(e) => setNewShort({...newShort, thumbnail_url: e.target.value})} placeholder="https://example.com/image.jpg" className="col-span-3" />
               </div>
-              <Button>Save Short</Button>
+              <Button onClick={handleAddShort}>Save Short</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -52,14 +92,14 @@ export default function AdminShortsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shorts.map((short, index) => (
-                <TableRow key={index}>
+              {shorts.map((short: any) => (
+                <TableRow key={short.id}>
                   <TableCell className="font-medium">{short.title}</TableCell>
                   <TableCell>{short.views}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="icon"><Edit className="w-4 h-4"/></Button>
-                        <Button variant="destructive" size="icon"><Trash className="w-4 h-4"/></Button>
+                        {/* <Button variant="outline" size="icon"><Edit className="w-4 h-4"/></Button> */}
+                        <Button variant="destructive" size="icon" onClick={() => handleDeleteShort(short.id)}><Trash className="w-4 h-4"/></Button>
                     </div>
                   </TableCell>
                 </TableRow>

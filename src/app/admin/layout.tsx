@@ -1,10 +1,11 @@
 // src/app/admin/layout.tsx
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Settings, Video, Film, Image as ImageIcon, BarChart2, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
+import { useEffect, useState } from 'react';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: BarChart2 },
@@ -21,6 +22,30 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isAllowed, setIsAllowed] = useState(false);
+
+  useEffect(() => {
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      const user = JSON.parse(userString);
+      if (user.role === 'admin') {
+        setIsAllowed(true);
+      } else {
+        router.push('/');
+      }
+    } else {
+      router.push('/login');
+    }
+  }, [router]);
+
+  if (!isAllowed) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <p>Loading...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
