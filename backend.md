@@ -27,8 +27,9 @@ This document outlines the requirements for the backend service that will power 
         -   `subtitle` (VARCHAR)
         -   `uploader_id` (INTEGER, REFERENCES users(id))
         -   `tags` (TEXT[])
-        -   `meta_data` (JSONB)
+        -   `meta_data` (JSONB) -- For SEO fields like seo_title, seo_description
         -   `display_order` (INTEGER)
+        -   `type` (VARCHAR) -- To store 'straight', 'gay', or 'trans'
     -   `shorts`:
         -   `id` (SERIAL PRIMARY KEY)
         -   `title` (VARCHAR)
@@ -87,7 +88,7 @@ The backend should expose a RESTful API to interact with the frontend. All `/api
 
 ### 2.2. Public Content
 
--   **`GET /api/videos`**: Fetch all videos, ordered by `display_order`.
+-   **`GET /api/videos`**: Fetch all videos, ordered by `display_order`. Can accept optional query params like `?type=gay`.
 -   **`GET /api/videos/:id`**: Fetch a single video by its ID, including associated categories.
 -   **`GET /api/videos/search?q=:query`**: Search for videos.
 -   **`GET /api/shorts`**: Fetch all shorts.
@@ -108,8 +109,8 @@ The backend should expose a RESTful API to interact with the frontend. All `/api
 
 ### 2.5. Admin - Content Management (Videos, Shorts, Images, Playlists, Categories, Creators)
 
--   **`POST /api/admin/videos`**: Add a new video. Also handle `categoryIds` in the body to link categories.
--   **`PUT /api/admin/videos/:id`**: Update an existing video. Also handle `categoryIds`.
+-   **`POST /api/admin/videos`**: Add a new video. Also handle `categoryIds` and `type` in the body.
+-   **`PUT /api/admin/videos/:id`**: Update an existing video. Also handle `categoryIds` and `type`.
 -   **`DELETE /api/admin/videos/:id`**: Delete a video.
 -   **`POST /api/admin/shorts`**: Add a new short.
 -   **`DELETE /api/admin/shorts/:id`**: Delete a short.
@@ -142,3 +143,4 @@ The Next.js frontend will use `fetch` to make requests to these endpoints.
 -   **JWT Management:** Upon successful login, the received JWT will be stored in `localStorage` and sent in the `Authorization: Bearer <token>` header for all protected requests (especially to `/api/admin/*` routes).
 -   **Admin Panel:** The admin pages will make CRUD requests to the `/api/admin/*` endpoints to manage content and settings. For example, the "Add Video" form will `POST` to `/api/admin/videos`. The theme settings form will `PUT` to `/api/admin/settings`.
 -   **Data Fetching:** The public pages (`/videos`, `/creators`, etc.) will `GET` data from the public API endpoints.
+-   **SEO:** The `/watch/[id]` page will fetch video details, including the `meta_data` field, and use it to populate `<title>` and `<meta>` tags in the page's `<Head>` for better SEO.

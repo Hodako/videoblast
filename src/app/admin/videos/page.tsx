@@ -12,6 +12,7 @@ import { getAdminVideos, addVideo, updateVideo, deleteVideo, getAdminCategories 
 import { PlusCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminVideosPage() {
   const { toast } = useToast();
@@ -26,12 +27,13 @@ export default function AdminVideosPage() {
     video_url: '',
     thumbnail_url: '',
     tags: '',
-    meta_data: '',
+    meta_data: { seo_title: '', seo_description: ''},
     subtitle: 'Admin Upload',
     duration: '0:00',
     views: '0',
     uploaded: new Date().toLocaleDateString(),
     categoryIds: [],
+    type: 'straight'
   });
 
   const fetchVideos = async () => {
@@ -63,7 +65,7 @@ export default function AdminVideosPage() {
       setCurrentVideo({
         ...video,
         tags: Array.isArray(video.tags) ? video.tags.join(', ') : '',
-        meta_data: video.meta_data ? JSON.stringify(video.meta_data) : '',
+        meta_data: video.meta_data ? (typeof video.meta_data === 'string' ? JSON.parse(video.meta_data) : video.meta_data) : { seo_title: '', seo_description: '' },
         categoryIds: video.categories?.map(c => c.id) || []
       });
     } else {
@@ -75,12 +77,13 @@ export default function AdminVideosPage() {
         video_url: '',
         thumbnail_url: '',
         tags: '',
-        meta_data: '',
+        meta_data: { seo_title: '', seo_description: ''},
         subtitle: 'Admin Upload',
         duration: '0:00',
         views: '0',
         uploaded: new Date().toLocaleDateString(),
         categoryIds: [],
+        type: 'straight'
       });
     }
     setIsDialogOpen(true);
@@ -90,7 +93,6 @@ export default function AdminVideosPage() {
     const videoPayload = {
       ...currentVideo,
       tags: currentVideo.tags.split(',').map(tag => tag.trim()),
-      meta_data: currentVideo.meta_data ? JSON.parse(currentVideo.meta_data) : {},
     };
 
     try {
@@ -123,6 +125,11 @@ export default function AdminVideosPage() {
     setCurrentVideo(prev => ({ ...prev, [id]: value }));
   };
 
+  const handleMetaDataChange = (e) => {
+    const { id, value } = e.target;
+    setCurrentVideo(prev => ({ ...prev, meta_data: { ...prev.meta_data, [id]: value } }));
+  }
+
   const handleCategoryChange = (categoryId, checked) => {
     setCurrentVideo(prev => {
         const newCategoryIds = checked
@@ -153,6 +160,19 @@ export default function AdminVideosPage() {
               <Label htmlFor="description" className="text-right">Description</Label>
               <Textarea id="description" value={currentVideo.description} onChange={handleInputChange} placeholder="Video Description" className="col-span-3" />
             </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">Type</Label>
+              <Select value={currentVideo.type} onValueChange={(value) => setCurrentVideo(prev => ({...prev, type: value}))}>
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="straight">Straight</SelectItem>
+                    <SelectItem value="gay">Gay</SelectItem>
+                    <SelectItem value="trans">Trans</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="video_url" className="text-right">Video URL</Label>
               <Input id="video_url" value={currentVideo.video_url} onChange={handleInputChange} placeholder="https://example.com/video.mp4" className="col-span-3" />
@@ -181,8 +201,12 @@ export default function AdminVideosPage() {
                 </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="meta_data" className="text-right">Meta Data (JSON)</Label>
-              <Input id="meta_data" value={currentVideo.meta_data} onChange={handleInputChange} placeholder='e.g. {"seo_keywords": "keyword"}' className="col-span-3" />
+              <Label htmlFor="seo_title" className="text-right">SEO Title</Label>
+              <Input id="seo_title" value={currentVideo.meta_data.seo_title} onChange={handleMetaDataChange} placeholder="Title for search engines" className="col-span-3" />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="seo_description" className="text-right">SEO Description</Label>
+              <Textarea id="seo_description" value={currentVideo.meta_data.seo_description} onChange={handleMetaDataChange} placeholder="Description for search engines" className="col-span-3" />
             </div>
             <Button onClick={handleSaveVideo}>{isEditing ? 'Save Changes' : 'Save Video'}</Button>
           </div>

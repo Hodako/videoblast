@@ -13,12 +13,18 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
   </div>
 );
 
-export default function SidebarContent() {
+type SidebarContentProps = {
+  onFilterChange: (filters: { types: string[] }) => void;
+};
+
+export default function SidebarContent({ onFilterChange }: SidebarContentProps) {
   const tags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"];
   const [types, setTypes] = useState<string[]>([]);
 
   const handleTypeChange = (type: string) => {
-    setTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
+    const newTypes = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
+    setTypes(newTypes);
+    onFilterChange({ types: newTypes });
   }
 
   return (

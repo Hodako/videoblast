@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/header';
 import PromoBanner from '@/components/promo-banner';
 import SidebarContent from '@/components/sidebar-content';
@@ -17,8 +17,9 @@ export default function Home() {
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const [lastY, setLastY] = useState(0);
   const isMobile = useIsMobile();
-  const [videos, setVideos] = useState([]);
+  const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
+  const [filters, setFilters] = useState({ types: [] });
 
   useEffect(() => {
     if (y > lastY) {
@@ -33,11 +34,24 @@ export default function Home() {
     const fetchData = async () => {
       const videosData = await getVideos();
       const shortsData = await getShorts();
-      setVideos(videosData);
+      setAllVideos(videosData);
       setShorts(shortsData);
     };
     fetchData();
   }, []);
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+  
+  const filteredVideos = useMemo(() => {
+    return allVideos.filter(video => {
+      if (filters.types.length > 0 && !filters.types.includes(video.type)) {
+        return false;
+      }
+      return true;
+    });
+  }, [allVideos, filters]);
 
 
   return (
@@ -46,10 +60,10 @@ export default function Home() {
       <PromoBanner />
       <div className="flex flex-col md:flex-row">
         <aside className="w-full shrink-0 md:w-[250px] bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
-          <SidebarContent />
+          <SidebarContent onFilterChange={handleFilterChange} />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
-          <MainContent videos={videos} shorts={shorts} />
+          <MainContent videos={filteredVideos} shorts={shorts} />
         </main>
       </div>
 
