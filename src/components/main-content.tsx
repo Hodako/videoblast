@@ -18,30 +18,30 @@ export default function MainContent({ videos, shorts }) {
       
       <TabsContent value="all">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 mb-10">
-          {videos.map((video, index) => (
-            <VideoCard key={index} video={video} index={index} />
+          {videos.map((video) => (
+            <VideoCard key={video.id} video={video} />
           ))}
         </div>
         <ShortsCarousel shorts={shorts} />
       </TabsContent>
       <TabsContent value="trending">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {trendingVideos.map((video, index) => (
-              <VideoCard key={`trending-${index}`} video={video} index={videos.indexOf(video)} />
+            {trendingVideos.map((video) => (
+              <VideoCard key={`trending-${video.id}`} video={video} />
             ))}
           </div>
       </TabsContent>
       <TabsContent value="new">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {newVideos.map((video, index) => (
-              <VideoCard key={`new-${index}`} video={video} index={videos.indexOf(video)} />
+            {newVideos.map((video) => (
+              <VideoCard key={`new-${video.id}`} video={video} />
             ))}
           </div>
       </TabsContent>
       <TabsContent value="photos">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {photos.map((video, index) => (
-              <VideoCard key={`photo-${index}`} video={video} index={videos.indexOf(video)} />
+            {photos.map((video) => (
+              <VideoCard key={`photo-${video.id}`} video={video} />
             ))}
           </div>
       </TabsContent>

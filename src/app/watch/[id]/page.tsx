@@ -24,14 +24,16 @@ export default function WatchPage() {
   const [video, setVideo] = useState(null);
   const [comments, setComments] = useState([]);
   const [recommendedVideos, setRecommendedVideos] = useState([]);
+  const [allVideos, setAllVideos] = useState([]);
 
   useEffect(() => {
     const fetchVideoData = async () => {
       if (id === -1) return;
-      const allVideos = await getVideos();
-      const currentVideo = allVideos.find(v => v.id === id);
+      const allVideosData = await getVideos();
+      setAllVideos(allVideosData);
+      const currentVideo = allVideosData.find(v => v.id === id);
       setVideo(currentVideo);
-      setRecommendedVideos(allVideos.filter(v => v.id !== id));
+      setRecommendedVideos(allVideosData.filter(v => v.id !== id));
 
       if(currentVideo) {
         const commentsData = await getComments(currentVideo.id);
@@ -363,8 +365,8 @@ export default function WatchPage() {
         <div className="w-full lg:w-[350px] shrink-0">
           <h2 className="text-xl font-bold mb-4">Up next</h2>
           <div className="space-y-4">
-            {recommendedVideos.map((recVideo, index) => (
-              <VideoCard key={index} video={recVideo} index={videos.indexOf(recVideo)} />
+            {recommendedVideos.map((recVideo) => (
+              <VideoCard key={recVideo.id} video={recVideo} />
             ))}
           </div>
         </div>

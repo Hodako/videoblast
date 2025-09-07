@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 
 type VideoCardProps = {
   video: {
+    id: number;
     title: string;
     duration: string;
     views: string;
@@ -12,12 +13,11 @@ type VideoCardProps = {
     thumbnail: string;
     imageUrl: string;
   };
-  index: number;
 };
 
-export default function VideoCard({ video, index }: VideoCardProps) {
+export default function VideoCard({ video }: VideoCardProps) {
   return (
-    <Link href={`/watch/${index}`} className="group">
+    <Link href={`/watch/${video.id}`} className="group">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
         <div className="relative w-full aspect-video">
           <Image

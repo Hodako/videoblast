@@ -1,21 +1,28 @@
 'use client';
 import { useSearchParams } from 'next/navigation';
 import Header from '@/components/header';
-import { videos } from '@/lib/data';
+import { getVideos } from '@/lib/data';
 import VideoCard from '@/components/video-card';
 import { useEffect, useState } from 'react';
-
-type Video = typeof videos[0];
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
-  const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
+  const [filteredVideos, setFilteredVideos] = useState([]);
+  const [allVideos, setAllVideos] = useState([]);
 
   useEffect(() => {
-    if (query) {
+    const fetchVideos = async () => {
+      const videosData = await getVideos();
+      setAllVideos(videosData);
+    };
+    fetchVideos();
+  }, []);
+
+  useEffect(() => {
+    if (query && allVideos.length > 0) {
       const lowercasedQuery = query.toLowerCase();
-      const results = videos.filter(
+      const results = allVideos.filter(
         (video) =>
           video.title.toLowerCase().includes(lowercasedQuery) ||
           video.description.toLowerCase().includes(lowercasedQuery) ||
@@ -25,7 +32,7 @@ export default function SearchPage() {
     } else {
       setFilteredVideos([]);
     }
-  }, [query]);
+  }, [query, allVideos]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -36,8 +43,8 @@ export default function SearchPage() {
         </h1>
         {filteredVideos.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-            {filteredVideos.map((video, index) => (
-              <VideoCard key={index} video={video} index={videos.indexOf(video)} />
+            {filteredVideos.map((video) => (
+              <VideoCard key={video.id} video={video} />
             ))}
           </div>
         ) : (
