@@ -28,11 +28,13 @@ export default function ShortsPage() {
   const currentShort = shorts[currentIndex];
 
   const goToNextShort = () => {
+    if (shorts.length === 0) return;
     const nextIndex = (currentIndex + 1) % shorts.length;
     router.push(`/shorts/${nextIndex}`, { scroll: false });
   };
 
   const goToPrevShort = () => {
+    if (shorts.length === 0) return;
     const prevIndex = (currentIndex - 1 + shorts.length) % shorts.length;
     router.push(`/shorts/${prevIndex}`, { scroll: false });
   };
@@ -59,12 +61,13 @@ export default function ShortsPage() {
     return () => {
         window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, shorts.length]);
   
   if (!currentShort) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
-        Short not found.
+        Loading...
       </div>
     );
   }
@@ -79,7 +82,7 @@ export default function ShortsPage() {
       <div className="relative w-full h-full max-w-[400px] aspect-[9/16]">
         <video
           ref={videoRef}
-          src={currentShort.videoUrl}
+          src={currentShort.video_url}
           loop
           className="w-full h-full object-cover"
           onClick={(e) => e.currentTarget.paused ? e.currentTarget.play() : e.currentTarget.pause()}

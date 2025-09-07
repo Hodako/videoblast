@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Metadata } from 'next';
 
 
 export default function WatchPage() {
@@ -29,29 +28,40 @@ export default function WatchPage() {
   const [recommendedVideos, setRecommendedVideos] = useState([]);
   const [allVideos, setAllVideos] = useState([]);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchVideoData = async () => {
       if (id === -1) return;
-      const allVideosData = await getVideos();
-      setAllVideos(allVideosData);
-      const currentVideo = allVideosData.find(v => v.id === id);
-      setVideo(currentVideo);
-      setRecommendedVideos(allVideosData.filter(v => v.id !== id));
-
-      if(currentVideo) {
-        const commentsData = await getComments(currentVideo.id);
-        setComments(commentsData);
+      try {
+        const allVideosData = await getVideos();
+        setAllVideos(allVideosData);
+        const currentVideo = allVideosData.find(v => v.id === id);
+        if (currentVideo) {
+            setVideo(currentVideo);
+            setRecommendedVideos(allVideosData.filter(v => v.id !== id));
+            const commentsData = await getComments(currentVideo.id);
+            setComments(commentsData);
+        } else {
+            console.error("Video not found");
+        }
+      } catch (error) {
+        console.error("Failed to fetch video data:", error);
       }
     };
     fetchVideoData();
+
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, [id]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
@@ -65,6 +75,7 @@ export default function WatchPage() {
   let controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -149,22 +160,32 @@ export default function WatchPage() {
     const setVideoDuration = () => setDuration(video.duration);
 
     const handleWaiting = () => setIsBuffering(true);
-    const handlePlaying = () => setIsBuffering(false);
+    const handlePlaying = () => {
+      setIsBuffering(false);
+      setIsPlaying(true);
+    };
+    const handleCanPlay = () => {
+      setIsBuffering(false);
+      video.play().catch(e => {
+        console.log("Autoplay was prevented.", e);
+        setIsPlaying(false);
+      });
+    };
 
     video.addEventListener('timeupdate', updateProgress);
     video.addEventListener('loadedmetadata', setVideoDuration);
     video.addEventListener('waiting', handleWaiting);
     video.addEventListener('playing', handlePlaying);
+    video.addEventListener('canplay', handleCanPlay);
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     
-    video.play().catch(e => {
-        console.log("Autoplay was prevented.", e);
-        setIsPlaying(false);
-    });
+    // Start unmuted
+    video.muted = false;
+    setIsMuted(false);
 
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
@@ -204,6 +225,7 @@ export default function WatchPage() {
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('waiting', handleWaiting);
       video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('canplay', handleCanPlay);
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -221,11 +243,11 @@ export default function WatchPage() {
     }
   };
 
-  if (id === -1 || !video) {
+  if (!video) {
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
             <Header />
-            <p>Video not found.</p>
+            <p>Loading video...</p>
         </div>
     );
   }
@@ -264,7 +286,7 @@ export default function WatchPage() {
               <div 
                 className={cn(
                   "absolute inset-0 bg-black/30 transition-opacity duration-300",
-                  showControls ? "opacity-100" : "opacity-0"
+                  showControls ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
               >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-10">
@@ -383,12 +405,14 @@ export default function WatchPage() {
                       <h2 className="text-xl font-bold">Comments</h2>
                   </div>
                   <div className="bg-muted p-4 rounded-lg text-center">
+                    {!user ? (
                       <p className="text-muted-foreground mb-4">
                           <Link href="/login" className="text-primary underline">Login</Link> or <Link href="/signup" className="text-primary underline">Sign up</Link> to post a comment.
                       </p>
+                    ): null}
                       <div className="relative">
-                          <Textarea placeholder="Add a comment..." className="bg-background pr-12" disabled />
-                          <Button size="icon" className="absolute right-2 bottom-2" disabled>
+                          <Textarea placeholder="Add a comment..." className="bg-background pr-12" disabled={!user} />
+                          <Button size="icon" className="absolute right-2 bottom-2" disabled={!user}>
                               <Send className="w-4 h-4" />
                           </Button>
                       </div>
