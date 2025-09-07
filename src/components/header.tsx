@@ -1,18 +1,26 @@
 'use client';
 import Link from 'next/link';
-import { Menu, Search, UserCircle, ArrowLeft, Film, Settings } from 'lucide-react';
+import { Menu, Search, UserCircle, ArrowLeft, Film, Settings, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from './ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 export default function Header() {
   const router = useRouter();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [user, setUser] = useState<{firstName?: string, email?: string, role?: string} | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,6 +32,13 @@ export default function Header() {
     setIsMobileSearchOpen(false); // Close search on submit
   };
   
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    router.push('/');
+  };
+
   const searchForm = (
     <form onSubmit={handleSearch} className="relative w-full">
        {isMobileSearchOpen && (
@@ -46,14 +61,19 @@ export default function Header() {
 
   const navLinks = (
     <>
+      <form onSubmit={handleSearch} className="relative w-full lg:hidden mb-4">
+        <Input name="search" placeholder="Search..." className="bg-muted pr-10" />
+        <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground">
+          <Search className="w-4 h-4" />
+        </Button>
+      </form>
       <Link href="/videos" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
-      <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2 lg:hidden">
+      <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2">
         <Film className="w-5 h-5" /> Shorts
       </Link>
       <Link href="/live" className="text-sm text-foreground hover:text-primary transition-colors">Live</Link>
       <Link href="/categories" className="text-sm text-foreground hover:text-primary transition-colors">Categories</Link>
       <Link href="/creators" className="text-sm text-foreground hover:text-primary transition-colors">Creators</Link>
-      <Link href="/channels" className="text-sm text-foreground hover:text-primary transition-colors">Channels</Link>
       <Link href="/playlists" className="text-sm text-foreground hover:text-primary transition-colors">Playlists</Link>
     </>
   );
@@ -62,7 +82,7 @@ export default function Header() {
     <header className="bg-card px-4 sm:px-5 h-[60px] flex items-center justify-between border-b border-border gap-4">
        <div className={cn("flex items-center gap-8", { 'hidden': isMobileSearchOpen })}>
          <Link href="/" className="text-2xl font-bold text-primary">
-          VideoHub
+          StreamVerse
         </Link>
         <nav className="hidden lg:flex gap-8 list-none">
           {navLinks}
@@ -78,15 +98,7 @@ export default function Header() {
             <Search className="w-5 h-5"/>
         </Button>
 
-        <div className="hidden sm:flex items-center gap-2">
-          <Button asChild variant="outline">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup">Sign up for free</Link>
-          </Button>
-        </div>
-        <div className="sm:hidden">
+        {user ? (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -94,17 +106,47 @@ export default function Header() {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+                    <DropdownMenuItem disabled>{user.firstName}</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer">
+                      <LogOut />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-        </div>
+        ) : (
+          <>
+            <div className="hidden sm:flex items-center gap-2">
+              <Button asChild variant="outline">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/signup">Sign up for free</Link>
+              </Button>
+            </div>
+            <div className="sm:hidden">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <UserCircle className="w-6 h-6" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+          </>
+        )}
         
-        <Link href="/admin">
-          <Button variant="ghost" size="icon">
-            <Settings />
-          </Button>
-        </Link>
+        {user?.role === 'admin' && (
+          <Link href="/admin">
+            <Button variant="ghost" size="icon">
+              <Settings />
+            </Button>
+          </Link>
+        )}
 
         <div className="lg:hidden">
           <Sheet>

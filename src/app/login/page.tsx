@@ -15,11 +15,13 @@ import Link from "next/link";
 import Header from "@/components/header";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = async () => {
     const response = await fetch('/api/auth/login', {
@@ -31,11 +33,17 @@ export default function LoginPage() {
     });
 
     if (response.ok) {
-      const { token } = await response.json();
+      const { token, user } = await response.json();
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       router.push('/');
+      router.refresh(); 
     } else {
-      // Handle error
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Invalid credentials. Please try again.",
+      })
       console.error('Login failed');
     }
   };
@@ -54,11 +62,11 @@ export default function LoginPage() {
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required onChange={(e) => setPassword(e.target.value)} />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col">
