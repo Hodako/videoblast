@@ -2,7 +2,7 @@
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { shorts } from '@/lib/data';
+import { getShorts } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, ChevronUp, ChevronDown, X } from 'lucide-react';
@@ -13,8 +13,17 @@ export default function ShortsPage() {
   const router = useRouter();
   const id = params.id ? parseInt(params.id as string, 10) : 0;
   
+  const [shorts, setShorts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(id);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const fetchShorts = async () => {
+      const shortsData = await getShorts();
+      setShorts(shortsData);
+    };
+    fetchShorts();
+  }, []);
 
   const currentShort = shorts[currentIndex];
 

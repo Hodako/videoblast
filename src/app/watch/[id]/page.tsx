@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Header from '@/components/header';
-import { videos } from '@/lib/data';
+import { getVideos, getComments } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send } from 'lucide-react';
@@ -21,8 +21,25 @@ export default function WatchPage() {
   const params = useParams();
   const id = params.id ? parseInt(params.id as string, 10) : -1;
   
-  const video = videos[id];
-  const recommendedVideos = videos.filter((_, index) => index !== id);
+  const [video, setVideo] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [recommendedVideos, setRecommendedVideos] = useState([]);
+
+  useEffect(() => {
+    const fetchVideoData = async () => {
+      if (id === -1) return;
+      const allVideos = await getVideos();
+      const currentVideo = allVideos.find(v => v.id === id);
+      setVideo(currentVideo);
+      setRecommendedVideos(allVideos.filter(v => v.id !== id));
+
+      if(currentVideo) {
+        const commentsData = await getComments(currentVideo.id);
+        setComments(commentsData);
+      }
+    };
+    fetchVideoData();
+  }, [id]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);

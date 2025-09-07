@@ -1,5 +1,7 @@
 
-export const videos = [
+const API_URL = 'http://localhost:3001/api';
+
+const videos = [
     {
       id: 1,
       title: 'Big Buck Bunny',
@@ -7,7 +9,7 @@ export const videos = [
       duration: '10:34',
       views: '1.2M',
       uploaded: '2 weeks ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       subtitle: 'By Blender Foundation',
       uploader: {
@@ -22,7 +24,7 @@ export const videos = [
       duration: '12:41',
       views: '8M',
       uploaded: '1 month ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       subtitle: 'By Blender Foundation',
       uploader: {
@@ -37,7 +39,7 @@ export const videos = [
       duration: '0:15',
       views: '500K',
       uploaded: '3 days ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
       subtitle: 'By Google',
       uploader: {
@@ -52,7 +54,7 @@ export const videos = [
       duration: '0:15',
       views: '1M',
       uploaded: '1 week ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
       subtitle: 'By Google',
       uploader: {
@@ -67,7 +69,7 @@ export const videos = [
       duration: '1:00',
       views: '2.5M',
       uploaded: '4 weeks ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
       subtitle: 'By Google',
       uploader: {
@@ -82,7 +84,7 @@ export const videos = [
       duration: '0:15',
       views: '3M',
       uploaded: '2 months ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
       subtitle: 'By Google',
       uploader: {
@@ -97,7 +99,7 @@ export const videos = [
       duration: '0:15',
       views: '800K',
       uploaded: '1 day ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
       subtitle: 'By Google',
       uploader: {
@@ -112,7 +114,7 @@ export const videos = [
       duration: '14:48',
       views: '10M',
       uploaded: '1 year ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
       subtitle: 'By Blender Foundation',
       uploader: {
@@ -127,7 +129,7 @@ export const videos = [
       duration: '2:33',
       views: '400K',
       uploaded: '5 days ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
       subtitle: 'By Garage419',
       uploader: {
@@ -142,7 +144,7 @@ export const videos = [
       duration: '12:14',
       views: '5M',
       uploaded: '6 months ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
       subtitle: 'By Blender Foundation',
       uploader: {
@@ -157,7 +159,7 @@ export const videos = [
       duration: '8:34',
       views: '2M',
       uploaded: '3 years ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/VolkswagenGTIReview.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
       subtitle: 'By Garage419',
       uploader: {
@@ -172,7 +174,7 @@ export const videos = [
       duration: '1:00',
       views: '1.5M',
       uploaded: '4 years ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
       subtitle: 'By Garage419',
       uploader: {
@@ -187,7 +189,7 @@ export const videos = [
       duration: '5:31',
       views: '3.8M',
       uploaded: '2 years ago',
-      thumbnailUrl: '/placeholder.svg',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/WhatCarCanYouGetForAGrand.jpg',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
       subtitle: 'By Garage419',
       uploader: {
@@ -197,188 +199,244 @@ export const videos = [
     },
   ];
   
-  export const shorts = [
+  const shorts = [
     {
       id: 0,
       title: 'For Bigger Fun',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
       views: '2.5M',
     },
     {
       id: 1,
       title: 'For Bigger Joyrides',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
       views: '3M',
     },
     {
       id: 2,
       title: 'For Bigger Meltdowns',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg',
       views: '800K',
     },
     {
       id: 3,
       title: 'For Bigger Blazes',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
       views: '500K',
     },
     {
       id: 4,
       title: 'For Bigger Escapes',
       videoUrl: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+      imageUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
       views: '1M',
     },
   ];
 
   export async function getVideos() {
-    // In a real app, you'd fetch this from an API
-    // const response = await fetch('/api/videos');
-    // return response.json();
-    return videos.map(v => ({...v, imageUrl: `https://picsum.photos/seed/${v.title.split(' ').join('-')}/400/225`}));
+    return videos;
   }
   
   export async function getShorts() {
-    // In a real app, you'd fetch this from an API
-    // const response = await fetch('/api/shorts');
-    // return response.json();
-    return shorts.map(s => ({...s, thumbnail: s.title.toLowerCase().split(' ').slice(0,2).join(' '), imageUrl: `https://picsum.photos/seed/${s.title.split(' ').join('-')}/300/500`}));
+    return shorts;
   }
   
   export const getComments = async (videoId: number) => {
-    // In a real app, you'd fetch this from an API
+    // This is just mock data
     return [
-      {
-        id: 1,
-        text: 'This is a great video!',
-        user: {
-          name: 'John Doe',
-          avatarUrl: '/placeholder.svg',
-        },
-        timestamp: '2 hours ago',
-      },
-      {
-        id: 2,
-        text: 'Learned a lot from this.',
-        user: {
-          name: 'Jane Smith',
-          avatarUrl: '/placeholder.svg',
-        },
-        timestamp: '1 day ago',
-      },
+        { id: 1, author: 'Alice', text: 'Great video!', avatar: 'https://i.pravatar.cc/150?u=alice' },
+        { id: 2, author: 'Bob', text: 'Very informative, thanks!', avatar: 'https://i.pravatar.cc/150?u=bob' },
     ];
   };
   
   export const getAdminDashboardData = async () => {
-    return {
-      totalRevenue: 50000,
-      newSubscribers: 1200,
-      totalVideos: 250,
-      totalViews: 1500000,
-      monthlyData: [
-        { month: 'Jan', revenue: 4000, subscribers: 240 },
-        { month: 'Feb', revenue: 3000, subscribers: 139 },
-        { month: 'Mar', revenue: 5000, subscribers: 980 },
-        { month: 'Apr', revenue: 4500, subscribers: 390 },
-        { month: 'May', revenue: 6000, subscribers: 480 },
-        { month: 'Jun', revenue: 5500, subscribers: 380 },
-        { month: 'Jul', revenue: 6500, subscribers: 430 },
-      ],
-    };
+    const response = await fetch(`${API_URL}/admin/stats`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const getAdminVideos = async () => {
-    return videos;
+    const response = await fetch(`${API_URL}/videos`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const getAdminShorts = async () => {
-    return shorts;
+    const response = await fetch(`${API_URL}/shorts`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const getAdminImages = async () => {
-    return [
-      { id: 1, title: 'Image 1', url: '/placeholder.svg' },
-      { id: 2, title: 'Image 2', url: '/placeholder.svg' },
-    ];
+    const response = await fetch(`${API_URL}/admin/images`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const getAdminPlaylists = async () => {
-    return [
-      { id: 1, name: 'Playlist 1', videoCount: 10 },
-      { id: 2, name: 'Playlist 2', videoCount: 5 },
-    ];
+    const response = await fetch(`${API_URL}/admin/playlists`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const getSiteSettings = async () => {
-    return {
-      theme: {
-        primaryColor: '#1a73e8',
-        accentColor: '#ffc107',
-        fontFamily: 'Roboto',
-      },
-      bannerText: 'Welcome to our video platform!',
-    };
+    const response = await fetch(`${API_URL}/settings`);
+    return response.json();
   };
   
   export const updateSiteSettings = async (settings: any) => {
-    console.log('Updating site settings:', settings);
-    // In a real app, this would make an API call
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(settings)
+    });
+    return response.json();
   };
   
   export const reorderVideos = async (orderedVideos: any[]) => {
-    console.log('Reordering videos:', orderedVideos);
-    // In a real app, this would make an API call
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/videos/reorder`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(orderedVideos)
+    });
+    return response.json();
   };
   
   export const addVideo = async (video: any) => {
-    console.log('Adding video:', video);
-    return { success: true, video: { ...video, id: Math.random() } };
+    const response = await fetch(`${API_URL}/admin/videos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(video)
+    });
+    return response.json();
   };
   
   export const updateVideo = async (video: any) => {
-    console.log('Updating video:', video);
-    return { success: true, video };
+    const response = await fetch(`${API_URL}/admin/videos/${video.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(video)
+    });
+    return response.json();
   };
   
   export const deleteVideo = async (id: number) => {
-    console.log('Deleting video:', id);
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/videos/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const addShort = async (short: any) => {
-    console.log('Adding short:', short);
-    return { success: true, short: { ...short, id: Math.random() } };
+    const response = await fetch(`${API_URL}/admin/shorts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(short)
+    });
+    return response.json();
   };
   
   export const deleteShort = async (id: number) => {
-    console.log('Deleting short:', id);
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/shorts/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const addImage = async (image: any) => {
-    console.log('Adding image:', image);
-    return { success: true, image: { ...image, id: Math.random() } };
+    const response = await fetch(`${API_URL}/admin/images`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(image)
+    });
+    return response.json();
   };
   
   export const deleteImage = async (id: number) => {
-    console.log('Deleting image:', id);
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/images/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
   
   export const addPlaylist = async (playlist: any) => {
-    console.log('Adding playlist:', playlist);
-    return { success: true, playlist: { ...playlist, id: Math.random() } };
+    const response = await fetch(`${API_URL}/admin/playlists`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(playlist)
+    });
+    return response.json();
   };
   
   export const updatePlaylist = async (playlist: any) => {
-    console.log('Updating playlist:', playlist);
-    return { success: true, playlist };
+    const response = await fetch(`${API_URL}/admin/playlists/${playlist.id}` , {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify(playlist)
+    });
+    return response.json();
   };
   
   export const deletePlaylist = async (id: number) => {
-    console.log('Deleting playlist:', id);
-    return { success: true };
+    const response = await fetch(`${API_URL}/admin/playlists/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.json();
   };
 
     
