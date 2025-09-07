@@ -211,8 +211,8 @@ router.put('/settings', async (req, res) => {
 
 router.put('/videos/reorder', async (req, res) => {
   const videos = req.body;
+  const client = await pool.connect();
   try {
-    const client = await pool.connect();
     await client.query('BEGIN');
     for (const video of videos) {
       await client.query('UPDATE videos SET display_order = $1 WHERE id = $2', [video.order, video.id]);
@@ -220,8 +220,8 @@ router.put('/videos/reorder', async (req, res) => {
     await client.query('COMMIT');
     res.status(204).send();
   } catch (error) {
-    console.error(error);
     await client.query('ROLLBACK');
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   } finally {
     client.release();
