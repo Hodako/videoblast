@@ -77,16 +77,16 @@ export async function getCreators() {
   }
 }
 
-export const getVideoBySlug = async (slug: string) => {
-    if (!slug) return null;
+export const getVideoById = async (id: number) => {
+    if (!id) return null;
     try {
-        const response = await fetch(`${API_URL}/videos/${slug}`);
+        const response = await fetch(`${API_URL}/videos/${id}`);
         if (!response.ok) {
             return null;
         }
         return await response.json();
     } catch (error) {
-        console.error('Error fetching video by slug:', error);
+        console.error('Error fetching video by id:', error);
         return null;
     }
 };

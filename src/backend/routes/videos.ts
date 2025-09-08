@@ -19,15 +19,12 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:slug', async (req, res) => {
-  const { slug } = req.params;
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    const video = await prisma.video.findFirst({
+    const video = await prisma.video.findUnique({
         where: {
-            title: {
-                equals: slug.replace(/-/g, ' '),
-                mode: 'insensitive'
-            }
+            id: parseInt(id)
         },
         include: {
             categories: {

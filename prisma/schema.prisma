@@ -11,42 +11,42 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  first_name    String
-  last_name     String
-  email         String    @unique
+  id            Int      @id @default(autoincrement())
+  first_name    String?
+  last_name     String?
+  email         String   @unique
   password_hash String
-  role          String    @default("user")
-  created_at    DateTime  @default(now())
-  videos        Video[]
+  created_at    DateTime @default(now())
+  role          String   @default("user")
   playlists     Playlist[]
   comments      Comment[]
+  videos        Video[]
 }
 
 model Video {
-  id            Int      @id @default(autoincrement())
-  title         String   @unique
-  description   String?
-  duration      String?
-  views         String?
-  uploaded      DateTime?
-  thumbnail_url String?
-  video_url     String
-  subtitle      String?
-  uploader      User     @relation(fields: [uploader_id], references: [id])
-  uploader_id   Int
-  tags          String[]
-  meta_data     Json?
-  display_order Int?
-  type          String? // straight, gay, or trans
-  categories    VideoCategory[]
-  playlists     PlaylistVideo[]
-  comments      Comment[]
+  id              Int             @id @default(autoincrement())
+  title           String?
+  description     String?
+  duration        String?
+  views           Int?
+  uploaded        DateTime?
+  thumbnail_url   String?
+  video_url       String
+  subtitle        String?
+  uploader_id     Int?
+  tags            String[]
+  meta_data       Json?
+  display_order   Int?
+  type            String?
+  uploader        User?           @relation(fields: [uploader_id], references: [id])
+  playlists       PlaylistVideo[]
+  comments        Comment[]
+  categories      VideoCategory[]
 }
 
 model Short {
   id            Int     @id @default(autoincrement())
-  title         String  @unique
+  title         String? @unique
   video_url     String
   thumbnail_url String?
   views         String?
@@ -61,16 +61,16 @@ model Image {
 model Playlist {
   id      Int             @id @default(autoincrement())
   name    String
-  user    User            @relation(fields: [user_id], references: [id])
   user_id Int
+  user    User            @relation(fields: [user_id], references: [id])
   videos  PlaylistVideo[]
 }
 
 model PlaylistVideo {
-  playlist    Playlist @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
   playlist_id Int
-  video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
   video_id    Int
+  playlist    Playlist @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
+  video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
 
   @@id([playlist_id, video_id])
 }
@@ -78,11 +78,11 @@ model PlaylistVideo {
 model Comment {
   id         Int      @id @default(autoincrement())
   text       String
-  user       User     @relation(fields: [user_id], references: [id])
   user_id    Int
-  video      Video    @relation(fields: [video_id], references: [id])
   video_id   Int
   created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id])
+  video      Video    @relation(fields: [video_id], references: [id])
 }
 
 model SiteSetting {
@@ -96,18 +96,20 @@ model Category {
   videos VideoCategory[]
 }
 
-model Creator {
-  id          Int     @id @default(autoincrement())
-  name        String
-  image_url   String?
-  description String?
-}
-
 model VideoCategory {
-  video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
   video_id    Int
-  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
   category_id Int
+  video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
 
   @@id([video_id, category_id])
 }
+
+model Creator {
+  id        Int     @id @default(autoincrement())
+  name      String
+  image_url String?
+  description String?
+}
+
+    

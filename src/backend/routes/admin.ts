@@ -37,14 +37,9 @@ router.get('/stats', async (req, res) => {
         _sum: {
             views: true,
         },
-        where: {
-            views: {
-                not: null
-            }
-        }
     });
     
-    const totalViews = totalViewsResult._sum.views ? parseInt(totalViewsResult._sum.views) : 0;
+    const totalViews = totalViewsResult._sum.views || 0;
     
     res.json({
       totalVideos: videoCount.toString(),
@@ -439,3 +434,5 @@ router.delete('/creators/:id', async (req, res) => {
 });
 
 export default router;
+
+    

@@ -10,21 +10,11 @@ type VideoCardProps = {
     id: number;
     title: string;
     duration: string;
-    views: string;
+    views: number;
     uploaded: string;
     thumbnail_url: string;
   };
 };
-
-const slugify = (text: string) => {
-    if (!text) return '';
-    return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
-}
 
 export default function VideoCard({ video }: VideoCardProps) {
   if (!video) {
@@ -39,21 +29,18 @@ export default function VideoCard({ video }: VideoCardProps) {
     )
   }
 
-  const slug = slugify(video.title);
-
-  const formatViews = (views) => {
-    const num = parseInt(views);
-    if (isNaN(num)) return '0 views';
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M views`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K views`;
-    return `${num} views`;
+  const formatViews = (views: number) => {
+    if (isNaN(views)) return '0 views';
+    if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M views`;
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}K views`;
+    return `${views} views`;
   };
 
   const uploadedDate = video.uploaded ? new Date(video.uploaded) : new Date();
   const timeAgo = formatDistanceToNow(uploadedDate, { addSuffix: true });
 
   return (
-    <Link href={`/watch/${slug}`} className="group">
+    <Link href={`/watch/${video.id}`} className="group">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
         <div className="relative w-full aspect-video">
           <Image
@@ -75,3 +62,5 @@ export default function VideoCard({ video }: VideoCardProps) {
     </Link>
   );
 }
+
+    
