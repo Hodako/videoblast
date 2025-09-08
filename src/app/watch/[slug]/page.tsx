@@ -84,7 +84,7 @@ export default function WatchPage() {
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
@@ -107,11 +107,11 @@ export default function WatchPage() {
   const handlePlayPause = useCallback(() => {
     if (videoRef.current) {
       if (videoRef.current.paused) {
-        videoRef.current.play();
-        setIsPlaying(true);
+        videoRef.current.play().catch(() => {
+          setIsPlaying(false) // if promise rejects, stay paused
+        });
       } else {
         videoRef.current.pause();
-        setIsPlaying(false);
       }
     }
   }, []);
@@ -176,11 +176,22 @@ export default function WatchPage() {
     const video = videoRef.current;
     if (!video) return;
 
+    const tryPlay = () => {
+      video.play().catch(error => {
+        if (error.name === "NotAllowedError") {
+          setIsPlaying(false);
+        }
+      });
+    }
+
     const updateProgress = () => {
       setProgress(video.currentTime);
       setCurrentTime(video.currentTime);
     };
-    const setVideoDuration = () => setDuration(video.duration);
+    const setVideoDuration = () => {
+      setDuration(video.duration);
+      tryPlay(); // Try to play after metadata is loaded
+    }
 
     const handleWaiting = () => setIsBuffering(true);
     const handlePlaying = () => {
@@ -336,16 +347,24 @@ export default function WatchPage() {
                 src={video.video_url}
                 className="w-full h-full"
                 onClick={handlePlayPause}
-                autoPlay
+                playsInline
               />
+               {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 cursor-pointer" onClick={handlePlayPause}>
+                  <div className="text-white text-center">
+                    <Play className="w-16 h-16 mb-2 mx-auto"/>
+                    <p>Click to Play</p>
+                  </div>
+                </div>
+              )}
               {isBuffering && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
                    <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
               <div 
                 className={cn(
-                  "absolute inset-0 bg-gradient-to-t from-black/50 to-transparent transition-opacity duration-300",
+                  "absolute inset-0 bg-gradient-to-t from-black/50 to-transparent transition-opacity duration-300 z-10",
                   showControls || !isPlaying ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
               >
