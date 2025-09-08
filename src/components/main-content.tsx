@@ -3,9 +3,12 @@ import ShortsCarousel from './shorts-carousel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function MainContent({ videos, shorts }) {
-  const trendingVideos = videos.slice().sort(() => 0.5 - Math.random()).slice(0, 8);
-  const newVideos = [...videos].sort((a, b) => new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime()).slice(0, 8);
+  const trendingVideos = [...videos].sort((a, b) => parseInt(b.views) - parseInt(a.views));
+  const newVideos = [...videos].sort((a, b) => new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime());
   const photos = videos.filter(v => v.thumbnail && v.thumbnail.includes('bigger'));
+
+  const topFourVideos = videos.slice(0, 4);
+  const remainingVideos = videos.slice(4);
 
   return (
     <Tabs defaultValue="all" className="w-full">
@@ -18,11 +21,16 @@ export default function MainContent({ videos, shorts }) {
       
       <TabsContent value="all">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 mb-10">
-          {videos.map((video) => (
+          {topFourVideos.map((video) => (
             <VideoCard key={video.id} video={video} />
           ))}
         </div>
         <ShortsCarousel shorts={shorts} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5 mt-10">
+          {remainingVideos.map((video) => (
+            <VideoCard key={video.id} video={video} />
+          ))}
+        </div>
       </TabsContent>
       <TabsContent value="trending">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
