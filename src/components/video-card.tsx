@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
 
 type VideoCardProps = {
   video: {
@@ -25,6 +26,18 @@ const slugify = (text: string) => {
 
 export default function VideoCard({ video }: VideoCardProps) {
   const slug = slugify(video.title);
+
+  const formatViews = (views) => {
+    const num = parseInt(views);
+    if (isNaN(num)) return '0 views';
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M views`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K views`;
+    return `${num} views`;
+  };
+
+  const uploadedDate = video.uploaded ? new Date(video.uploaded) : new Date();
+  const timeAgo = formatDistanceToNow(uploadedDate, { addSuffix: true });
+
   return (
     <Link href={`/watch/${slug}`} className="group">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
@@ -43,7 +56,7 @@ export default function VideoCard({ video }: VideoCardProps) {
       </Card>
       <div className="p-2">
         <h3 className="font-bold text-sm leading-snug truncate group-hover:text-primary transition-colors">{video.title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">{video.views} &bull; {video.uploaded}</p>
+        <p className="text-xs text-muted-foreground mt-1">{formatViews(video.views)} &bull; {timeAgo}</p>
       </div>
     </Link>
   );

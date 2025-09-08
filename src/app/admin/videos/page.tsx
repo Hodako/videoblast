@@ -13,6 +13,7 @@ import { PlusCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from 'date-fns';
 
 export default function AdminVideosPage() {
   const { toast } = useToast();
@@ -31,7 +32,7 @@ export default function AdminVideosPage() {
     subtitle: 'Admin Upload',
     duration: '0:00',
     views: '0',
-    uploaded: new Date().toLocaleDateString(),
+    uploaded: new Date().toISOString(),
     categoryIds: [],
     type: 'straight'
   });
@@ -81,7 +82,7 @@ export default function AdminVideosPage() {
         subtitle: 'Admin Upload',
         duration: '0:00',
         views: '0',
-        uploaded: new Date().toLocaleDateString(),
+        uploaded: new Date().toISOString(),
         categoryIds: [],
         type: 'straight'
       });
@@ -234,7 +235,7 @@ export default function AdminVideosPage() {
                 <TableRow key={video.id}>
                   <TableCell className="font-medium">{video.title}</TableCell>
                   <TableCell>{video.views}</TableCell>
-                  <TableCell>{video.uploaded}</TableCell>
+                  <TableCell>{format(new Date(video.uploaded), "PP")}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                         <Button variant="outline" size="icon" onClick={() => handleOpenDialog(video)}><Edit className="w-4 h-4"/></Button>

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function MainContent({ videos, shorts }) {
   const trendingVideos = videos.slice().sort(() => 0.5 - Math.random()).slice(0, 8);
-  const newVideos = [...videos].reverse().slice(0, 8);
+  const newVideos = [...videos].sort((a, b) => new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime()).slice(0, 8);
   const photos = videos.filter(v => v.thumbnail && v.thumbnail.includes('bigger'));
 
   return (

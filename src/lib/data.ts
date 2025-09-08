@@ -15,8 +15,8 @@ const mockVideos = [
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
       title: 'Big Buck Bunny',
       duration: '10:34',
-      views: '1.2M',
-      uploaded: '2 weeks ago',
+      views: '1200000',
+      uploaded: '2024-05-15T12:00:00Z',
       type: 'straight'
     },
     {
@@ -27,8 +27,8 @@ const mockVideos = [
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
       title: 'Elephant Dream',
       duration: '12:41',
-      views: '8M',
-      uploaded: '1 month ago',
+      views: '8000000',
+      uploaded: '2024-05-01T12:00:00Z',
       type: 'gay'
     },
      {
@@ -39,8 +39,8 @@ const mockVideos = [
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
       title: 'For Bigger Fun',
       duration: '1:00',
-      views: '2.5M',
-      uploaded: '1 year ago',
+      views: '2500000',
+      uploaded: '2023-07-20T12:00:00Z',
       type: 'trans'
     },
     {
@@ -51,8 +51,8 @@ const mockVideos = [
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
       title: 'Sintel',
       duration: '14:48',
-      views: '10M',
-      uploaded: '4 years ago',
+      views: '10000000',
+      uploaded: '2020-09-30T12:00:00Z',
       type: 'straight'
     },
 ];
