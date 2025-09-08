@@ -337,7 +337,6 @@ export default function WatchPage() {
                 className="w-full h-full"
                 onClick={handlePlayPause}
                 autoPlay
-                muted
               />
               {isBuffering && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50">
