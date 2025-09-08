@@ -1,3 +1,4 @@
+// src/app/signup/page.tsx
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -44,11 +45,16 @@ export default function SignupPage() {
       });
 
       if (response.ok) {
+        const { token, user } = await response.json();
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         toast({
           title: "Signup Successful",
-          description: "You can now log in with your credentials.",
+          description: "Welcome! Your account has been created.",
         });
-        router.push('/login');
+        router.push(user.role === 'admin' ? '/admin' : '/');
+        // Force a re-render of the header to show login state
+        setTimeout(() => router.refresh(), 100); 
       } else {
         const errorData = await response.json();
         toast({
