@@ -1,18 +1,12 @@
 import { Router } from 'express';
-import { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { prisma } from '../lib/db';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 const router = Router();
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
 
 router.post('/signup', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
@@ -25,12 +19,16 @@ router.post('/signup', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    const newUser = await pool.query(
-      'INSERT INTO "User" (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, first_name, email, role',
-      [firstName, lastName, email, password_hash]
-    );
+    const newUser = await prisma.user.create({
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password_hash,
+      }
+    });
 
-    const user = newUser.rows[0];
+    const user = newUser;
 
     const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'secret', {
       expiresIn: '1h'
@@ -39,7 +37,7 @@ router.post('/signup', async (req, res) => {
     res.status(201).json({ token, user: { id: user.id, firstName: user.first_name, email: user.email, role: user.role } });
   } catch (error) {
     console.error(error);
-    if(error.code === '23505') { // unique_violation
+    if(error.code === 'P2002') { // unique_violation
         return res.status(409).json({ message: 'User with this email already exists.' });
     }
     res.status(500).json({ message: 'Server error' });
@@ -54,9 +52,8 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
-    const user = result.rows[0];
-
+    const user = await prisma.user.findUnique({ where: { email } });
+    
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }

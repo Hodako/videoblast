@@ -8,13 +8,12 @@ export async function getVideos(filters: { types?: string[] } = {}) {
   try {
     const params = new URLSearchParams();
     if (filters.types && filters.types.length > 0) {
-      // The backend needs to support this query param.
-      // Assuming it takes one type for simplicity
-      params.append('type', filters.types[0]);
+      filters.types.forEach(type => params.append('type', type));
     }
     const response = await fetch(`${API_URL}/videos?${params.toString()}`);
     if (!response.ok) {
-      throw new Error('Failed to fetch videos');
+      console.error('Failed to fetch videos:', response.statusText);
+      return [];
     }
     return response.json();
   } catch (error) {
@@ -27,7 +26,8 @@ export async function getShorts() {
   try {
     const response = await fetch(`${API_URL}/shorts`);
     if (!response.ok) {
-      throw new Error('Failed to fetch shorts');
+      console.error('Failed to fetch shorts:', response.statusText);
+      return [];
     }
     return response.json();
   } catch (error) {
@@ -53,7 +53,8 @@ export async function getCategories() {
   try {
     const response = await fetch(`${API_URL}/categories`);
     if (!response.ok) {
-      throw new Error('Failed to fetch categories');
+      console.error('Failed to fetch categories:', response.statusText);
+      return [];
     }
     return response.json();
   } catch (error) {
@@ -65,8 +66,9 @@ export async function getCategories() {
 export async function getCreators() {
   try {
     const response = await fetch(`${API_URL}/creators`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch creators');
+     if (!response.ok) {
+      console.error('Failed to fetch creators:', response.statusText);
+      return [];
     }
     return response.json();
   } catch (error) {
@@ -149,10 +151,9 @@ export const getAdminPlaylists = async () => {
 };
 
 export const getSiteSettings = async () => {
-    const token = getToken();
-    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    // This can be a public route, but we check for admin token for editing
     try {
-        const response = await fetch(`${API_URL}/admin/settings`, { headers });
+        const response = await fetch(`${API_URL}/admin/settings`);
         if (!response.ok) return { siteName: 'StreamVerse', siteLogoUrl: '' }; // Fallback
         return response.json();
     } catch (e) {
@@ -223,7 +224,7 @@ export const updateVideo = async (video: any) => {
 export const deleteVideo = async (id: number) => {
   const token = getToken();
   if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${APIURL}/admin/videos/${id}`, {
+  const response = await fetch(`${API_URL}/admin/videos/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });

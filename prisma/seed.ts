@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Start seeding...');
   const salt = await bcrypt.genSalt(10);
   const password_hash = await bcrypt.hash('password123', salt);
 
@@ -32,7 +33,7 @@ async function main() {
       title: 'Big Buck Bunny',
       duration: '10:34',
       views: '1200000',
-      uploaded: new Date('2023-10-15T08:00:00Z').toISOString(),
+      uploaded: new Date('2023-10-15T08:00:00Z'),
       uploader_id: user.id,
       tags: ['cartoon', 'bunny', 'comedy'],
       type: 'straight'
@@ -46,7 +47,7 @@ async function main() {
       title: 'Elephant Dream',
       duration: '12:41',
       views: '800000',
-      uploaded: new Date('2023-09-20T12:00:00Z').toISOString(),
+      uploaded: new Date('2023-09-20T12:00:00Z'),
       uploader_id: user.id,
       tags: ['blender', 'open movie', 'animation'],
       type: 'gay',
@@ -86,6 +87,7 @@ async function main() {
     });
   }
   console.log('Seeded shorts');
+  console.log('Seeding finished.');
 }
 
 main()
