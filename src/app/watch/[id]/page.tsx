@@ -1,4 +1,4 @@
-// src/app/watch/[id]/page.tsx
+// src/app/watch/[slug]/page.tsx
 'use client';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -20,9 +20,18 @@ import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 
+const slugify = (text: string) => {
+    return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+}
+
 export default function WatchPage() {
   const params = useParams();
-  const id = params.id ? parseInt(params.id as string, 10) : -1;
+  const slug = params.slug as string;
   
   const [video, setVideo] = useState(null);
   const [comments, setComments] = useState([]);
@@ -34,14 +43,14 @@ export default function WatchPage() {
 
   useEffect(() => {
     const fetchVideoData = async () => {
-      if (id === -1) return;
+      if (!slug) return;
       setIsLoading(true);
       try {
         const allVideosData = await getVideos();
-        const currentVideo = allVideosData.find(v => v.id === id);
+        const currentVideo = allVideosData.find(v => slugify(v.title) === slug);
         if (currentVideo) {
             setVideo(currentVideo);
-            setRecommendedVideos(allVideosData.filter(v => v.id !== id));
+            setRecommendedVideos(allVideosData.filter(v => slugify(v.title) !== slug));
             // const commentsData = await getComments(currentVideo.id);
             // setComments(commentsData);
         } else {
@@ -75,7 +84,7 @@ export default function WatchPage() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  }, [id]);
+  }, [slug]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -241,7 +250,7 @@ export default function WatchPage() {
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [id, handlePlayPause, handleToggleFullScreen, handleToggleMute]);
+  }, [slug, handlePlayPause, handleToggleFullScreen, handleToggleMute]);
 
   const handleMouseMove = () => {
     setShowControls(true);

@@ -14,9 +14,19 @@ type VideoCardProps = {
   };
 };
 
+const slugify = (text: string) => {
+    return text.toString().toLowerCase()
+        .replace(/\s+/g, '-')           // Replace spaces with -
+        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+        .replace(/^-+/, '')             // Trim - from start of text
+        .replace(/-+$/, '');            // Trim - from end of text
+}
+
 export default function VideoCard({ video }: VideoCardProps) {
+  const slug = slugify(video.title);
   return (
-    <Link href={`/watch/${video.id}`} className="group">
+    <Link href={`/watch/${slug}`} className="group">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
         <div className="relative w-full aspect-video">
           <Image
