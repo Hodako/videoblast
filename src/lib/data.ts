@@ -102,33 +102,35 @@ const mockCreators = [
 // --- Public Data Fetching Functions ---
 
 export async function getVideos() {
-  try {
-    const response = await fetch(`${API_URL}/videos`);
-    if (!response.ok) {
-      console.warn('Failed to fetch videos from backend, falling back to mock data.');
-      return mockVideos;
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching videos:', error);
-    console.warn('Falling back to mock videos.');
-    return mockVideos;
-  }
+  // try {
+  //   const response = await fetch(`${API_URL}/videos`);
+  //   if (!response.ok) {
+  //     console.warn('Failed to fetch videos from backend, falling back to mock data.');
+  //     return mockVideos;
+  //   }
+  //   return response.json();
+  // } catch (error) {
+  //   console.error('Error fetching videos:', error);
+  //   console.warn('Falling back to mock videos.');
+  //   return mockVideos;
+  // }
+  return mockVideos;
 }
 
 export async function getShorts() {
-   try {
-    const response = await fetch(`${API_URL}/shorts`);
-    if (!response.ok) {
-      console.warn('Failed to fetch shorts from backend, falling back to mock data.');
-      return mockShorts;
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching shorts:', error);
-    console.warn('Falling back to mock shorts.');
-    return mockShorts;
-  }
+  //  try {
+  //   const response = await fetch(`${API_URL}/shorts`);
+  //   if (!response.ok) {
+  //     console.warn('Failed to fetch shorts from backend, falling back to mock data.');
+  //     return mockShorts;
+  //   }
+  //   return response.json();
+  // } catch (error) {
+  //   console.error('Error fetching shorts:', error);
+  //   console.warn('Falling back to mock shorts.');
+  //   return mockShorts;
+  // }
+  return mockShorts;
 }
 
 export const getComments = async (videoId: number) => {
@@ -144,33 +146,35 @@ export const getComments = async (videoId: number) => {
 };
 
 export async function getCategories() {
-  try {
-    const response = await fetch(`${API_URL}/categories`);
-    if (!response.ok) {
-      console.warn('Failed to fetch categories from backend, falling back to mock data.');
-      return mockCategories;
-    }
-    return response.json();
-  } catch (error) {
-     console.error('Error fetching categories:', error);
-     console.warn('Falling back to mock categories.');
-     return mockCategories;
-  }
+  // try {
+  //   const response = await fetch(`${API_URL}/categories`);
+  //   if (!response.ok) {
+  //     console.warn('Failed to fetch categories from backend, falling back to mock data.');
+  //     return mockCategories;
+  //   }
+  //   return response.json();
+  // } catch (error) {
+  //    console.error('Error fetching categories:', error);
+  //    console.warn('Falling back to mock categories.');
+  //    return mockCategories;
+  // }
+  return mockCategories;
 }
 
 export async function getCreators() {
-  try {
-    const response = await fetch(`${API_URL}/creators`);
-    if (!response.ok) {
-      console.warn('Failed to fetch creators from backend, falling back to mock data.');
-      return mockCreators;
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching creators:', error);
-    console.warn('Falling back to mock creators.');
-    return mockCreators;
-  }
+  // try {
+  //   const response = await fetch(`${API_URL}/creators`);
+  //   if (!response.ok) {
+  //     console.warn('Failed to fetch creators from backend, falling back to mock data.');
+  //     return mockCreators;
+  //   }
+  //   return response.json();
+  // } catch (error) {
+  //   console.error('Error fetching creators:', error);
+  //   console.warn('Falling back to mock creators.');
+  //   return mockCreators;
+  // }
+  return mockCreators;
 }
   
 // --- Admin Data Fetching Functions ---
