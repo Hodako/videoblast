@@ -90,6 +90,11 @@ export default function AdminVideosPage() {
   };
   
   const handleSaveVideo = async () => {
+    if (!currentVideo.title.trim() || !currentVideo.video_url.trim()) {
+      toast({ variant: "destructive", title: "Error", description: "Title and Video URL are required." });
+      return;
+    }
+    
     const videoPayload = {
       ...currentVideo,
       tags: currentVideo.tags.split(',').map(tag => tag.trim()),

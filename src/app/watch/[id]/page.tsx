@@ -3,8 +3,9 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 import Header from '@/components/header';
-import { getVideos, getComments } from '@/lib/data';
+import { getVideos, getComments, getSiteSettings } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send, Loader2 } from 'lucide-react';
@@ -26,16 +27,16 @@ export default function WatchPage() {
   const [video, setVideo] = useState(null);
   const [comments, setComments] = useState([]);
   const [recommendedVideos, setRecommendedVideos] = useState([]);
-  const [allVideos, setAllVideos] = useState([]);
   const [isBuffering, setIsBuffering] = useState(false);
   const [user, setUser] = useState(null);
+  const [siteSettings, setSiteSettings] = useState({ siteName: 'StreamVerse', siteLogoUrl: '' });
+
 
   useEffect(() => {
     const fetchVideoData = async () => {
       if (id === -1) return;
       try {
         const allVideosData = await getVideos();
-        setAllVideos(allVideosData);
         const currentVideo = allVideosData.find(v => v.id === id);
         if (currentVideo) {
             setVideo(currentVideo);
@@ -49,7 +50,23 @@ export default function WatchPage() {
         console.error("Failed to fetch video data:", error);
       }
     };
+    
+    const fetchSiteSettings = async () => {
+      try {
+        const settings = await getSiteSettings();
+        if(settings) {
+          setSiteSettings({
+            siteName: settings.siteName || 'StreamVerse',
+            siteLogoUrl: settings.siteLogoUrl || '',
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch site settings", error);
+      }
+    }
+
     fetchVideoData();
+    fetchSiteSettings();
 
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
@@ -373,15 +390,16 @@ export default function WatchPage() {
               <h1 className="text-2xl font-bold">{video.title}</h1>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${video.subtitle}`} />
-                    <AvatarFallback>{video.subtitle.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  {siteSettings.siteLogoUrl && (
+                    <Avatar>
+                      <AvatarImage src={siteSettings.siteLogoUrl} alt={siteSettings.siteName} />
+                      <AvatarFallback>{siteSettings.siteName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
                   <div>
-                    <p className="font-semibold">{video.subtitle}</p>
-                    <p className="text-sm text-muted-foreground">1.2M subscribers</p>
+                    <p className="font-semibold">{siteSettings.siteName}</p>
+                    <p className="text-sm text-muted-foreground">{video.uploaded}</p>
                   </div>
-                  <Button variant="outline">Subscribe</Button>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost">
@@ -396,7 +414,7 @@ export default function WatchPage() {
                 </div>
               </div>
               <div className="mt-4 bg-muted p-4 rounded-lg">
-                <p className="font-semibold">{video.views} &bull; {video.uploaded}</p>
+                <p className="font-semibold">{video.views}</p>
                 <p className="text-sm mt-2">{video.description}</p>
               </div>
                <div className="mt-6">

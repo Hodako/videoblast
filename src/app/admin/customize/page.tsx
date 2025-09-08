@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { getVideos, reorderVideos, getSiteSettings, updateSiteSettings } from "@/lib/data"
 import { GripVertical } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
 
 export default function CustomizePage() {
   const { toast } = useToast();
@@ -16,6 +17,8 @@ export default function CustomizePage() {
   const [settings, setSettings] = useState({
     theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
     bannerText: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
+    siteName: 'StreamVerse',
+    siteLogoUrl: '/logo-placeholder.svg', // Default placeholder
   });
 
   useEffect(() => {
@@ -24,8 +27,14 @@ export default function CustomizePage() {
         const videosData = await getVideos();
         setVideos(videosData.slice(0, 5)); // show first 5 for reordering
         const siteSettings = await getSiteSettings();
-        if (siteSettings.theme || siteSettings.bannerText) {
-          setSettings(prev => ({ ...prev, ...siteSettings }));
+        // Merge fetched settings with defaults
+        if (siteSettings) {
+          setSettings(prev => ({
+            theme: siteSettings.theme || prev.theme,
+            bannerText: siteSettings.bannerText || prev.bannerText,
+            siteName: siteSettings.siteName || prev.siteName,
+            siteLogoUrl: siteSettings.siteLogoUrl || prev.siteLogoUrl,
+          }));
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -35,21 +44,12 @@ export default function CustomizePage() {
     fetchData();
   }, [toast]);
 
-  const handleThemeSave = async () => {
+  const handleSave = async (key: string, value: any) => {
     try {
-      await updateSiteSettings({ key: 'theme', value: settings.theme });
-      toast({ title: "Success", description: "Theme settings saved." });
+      await updateSiteSettings({ key, value });
+      toast({ title: "Success", description: `${key.charAt(0).toUpperCase() + key.slice(1)} settings saved.` });
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save theme." });
-    }
-  };
-  
-  const handleBannerSave = async () => {
-    try {
-      await updateSiteSettings({ key: 'bannerText', value: settings.bannerText });
-      toast({ title: "Success", description: "Banner text saved." });
-    } catch (error) {
-       toast({ variant: "destructive", title: "Error", description: "Failed to save banner text." });
+      toast({ variant: "destructive", title: "Error", description: `Failed to save ${key}.` });
     }
   };
 
@@ -63,11 +63,11 @@ export default function CustomizePage() {
     }
   };
   
-  const handleInputChange = (part: 'theme' | 'bannerText', key: string, value: string) => {
+  const handleInputChange = (part: 'theme' | 'bannerText' | 'siteName' | 'siteLogoUrl', key: string, value: string) => {
     if (part === 'theme') {
       setSettings(prev => ({ ...prev, theme: { ...prev.theme, [key]: value } }));
     } else {
-      setSettings(prev => ({ ...prev, bannerText: value }));
+      setSettings(prev => ({ ...prev, [part]: value }));
     }
   };
 
@@ -75,6 +75,27 @@ export default function CustomizePage() {
     <div>
       <h1 className="text-3xl font-bold mb-8">Customize Site</h1>
       <div className="grid gap-8">
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Site Identity</CardTitle>
+            <CardDescription>Manage your website's name and logo.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="site-name">Site Name</Label>
+              <Input id="site-name" value={settings.siteName} onChange={(e) => handleInputChange('siteName', 'siteName', e.target.value)} />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="site-logo-url">Site Logo URL</Label>
+              <Input id="site-logo-url" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', 'siteLogoUrl', e.target.value)} />
+            </div>
+             <div className="flex items-end md:col-span-2">
+                <Button onClick={() => handleSave('siteName', settings.siteName) && handleSave('siteLogoUrl', settings.siteLogoUrl)}>Save Identity</Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Theme Settings</CardTitle>
@@ -103,7 +124,7 @@ export default function CustomizePage() {
               <p className="text-xs text-muted-foreground">Enter a font name from Google Fonts.</p>
             </div>
             <div className="flex items-end">
-                <Button onClick={handleThemeSave}>Save Theme</Button>
+                <Button onClick={() => handleSave('theme', settings.theme)}>Save Theme</Button>
             </div>
           </CardContent>
         </Card>
@@ -115,7 +136,7 @@ export default function CustomizePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea value={settings.bannerText} onChange={(e) => handleInputChange('bannerText', 'bannerText', e.target.value)} />
-            <Button onClick={handleBannerSave}>Save Banner Text</Button>
+            <Button onClick={() => handleSave('bannerText', settings.bannerText)}>Save Banner Text</Button>
           </CardContent>
         </Card>
 

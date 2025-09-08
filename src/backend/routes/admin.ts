@@ -74,13 +74,18 @@ router.get('/videos', async (req, res) => {
 });
 
 router.post('/videos', async (req, res) => {
-  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [] } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type } = req.body;
+  
+  if(!title || !video_url) {
+    return res.status(400).json({ message: 'Title and Video URL are required' });
+  }
+
   const client = await pool.connect();
   try {
       await client.query('BEGIN');
       const newVideo = await client.query(
-          'INSERT INTO videos (title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, uploader_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, req.user.id]
+          'INSERT INTO videos (title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, uploader_id, type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, req.user.id, type]
       );
       const videoId = newVideo.rows[0].id;
       if (categoryIds.length > 0) {
@@ -100,13 +105,18 @@ router.post('/videos', async (req, res) => {
 
 router.put('/videos/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [] } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type } = req.body;
+
+  if(!title || !video_url) {
+    return res.status(400).json({ message: 'Title and Video URL are required' });
+  }
+  
   const client = await pool.connect();
   try {
       await client.query('BEGIN');
       const updatedVideo = await client.query(
-          'UPDATE videos SET title = $1, description = $2, video_url = $3, thumbnail_url = $4, tags = $5, meta_data = $6, subtitle = $7, duration = $8, views = $9, uploaded = $10 WHERE id = $11 RETURNING *',
-          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, id]
+          'UPDATE videos SET title = $1, description = $2, video_url = $3, thumbnail_url = $4, tags = $5, meta_data = $6, subtitle = $7, duration = $8, views = $9, uploaded = $10, type = $12 WHERE id = $11 RETURNING *',
+          [title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, id, type]
       );
       await client.query('DELETE FROM video_categories WHERE video_id = $1', [id]);
       if (categoryIds.length > 0) {
@@ -305,9 +315,10 @@ router.get('/settings', async (req, res) => {
 router.put('/settings', async (req, res) => {
   const { key, value } = req.body;
   try {
+    const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
     await pool.query(
       'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
-      [key, JSON.stringify(value)]
+      [key, valueToStore]
     );
     res.status(204).send();
   } catch (error) {
@@ -327,6 +338,9 @@ router.get('/categories', async (req, res) => {
 });
 router.post('/categories', async (req, res) => {
     const { name } = req.body;
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Category name cannot be empty.'});
+    }
     try {
         const newCategory = await pool.query('INSERT INTO categories (name) VALUES ($1) RETURNING *', [name]);
         res.status(201).json(newCategory.rows[0]);
@@ -337,6 +351,9 @@ router.post('/categories', async (req, res) => {
 router.put('/categories/:id', async (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Category name cannot be empty.'});
+    }
     try {
         const updated = await pool.query('UPDATE categories SET name = $1 WHERE id = $2 RETURNING *', [name, id]);
         res.json(updated.rows[0]);
@@ -365,6 +382,9 @@ router.get('/creators', async (req, res) => {
 });
 router.post('/creators', async (req, res) => {
     const { name, image_url, description } = req.body;
+     if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Creator name cannot be empty.'});
+    }
     try {
         const newCreator = await pool.query('INSERT INTO creators (name, image_url, description) VALUES ($1, $2, $3) RETURNING *', [name, image_url, description]);
         res.status(201).json(newCreator.rows[0]);
@@ -375,6 +395,9 @@ router.post('/creators', async (req, res) => {
 router.put('/creators/:id', async (req, res) => {
     const { id } = req.params;
     const { name, image_url, description } = req.body;
+     if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Creator name cannot be empty.'});
+    }
     try {
         const updated = await pool.query('UPDATE creators SET name = $1, image_url = $2, description = $3 WHERE id = $4 RETURNING *', [name, image_url, description, id]);
         res.json(updated.rows[0]);
