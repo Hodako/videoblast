@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from './ui/skeleton';
 
 type VideoCardProps = {
   video: {
@@ -16,6 +17,7 @@ type VideoCardProps = {
 };
 
 const slugify = (text: string) => {
+    if (!text) return '';
     return text.toString().toLowerCase()
         .replace(/\s+/g, '-')           // Replace spaces with -
         .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
@@ -25,6 +27,18 @@ const slugify = (text: string) => {
 }
 
 export default function VideoCard({ video }: VideoCardProps) {
+  if (!video) {
+    return (
+       <div className="group">
+          <Skeleton className="w-full aspect-video rounded-lg" />
+          <div className="p-2">
+            <Skeleton className="h-5 w-3/4 mb-1" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+      </div>
+    )
+  }
+
   const slug = slugify(video.title);
 
   const formatViews = (views) => {
