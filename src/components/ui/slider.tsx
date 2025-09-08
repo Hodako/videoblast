@@ -9,30 +9,11 @@ import { cn } from "@/lib/utils"
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, value, onValueChange, ...props }, ref) => {
-  // We use a local state to give immediate feedback to the user when they drag the slider.
-  const [localValue, setLocalValue] = React.useState(value || [0])
-
-  // This effect syncs the local state with the video's actual progress (the external value prop).
-  React.useEffect(() => {
-    setLocalValue(value || [0])
-  }, [value])
-
-  // This function is called ONLY when the user interacts with the slider.
-  const handleValueChange = (newValue: number[]) => {
-      // It updates the local state for a smooth UI.
-      setLocalValue(newValue);
-      // It calls the passed onValueChange function to update the video's time.
-      if (onValueChange) {
-          onValueChange(newValue);
-      }
-  }
-
+>(({ className, value, ...props }, ref) => {
   return (
     <SliderPrimitive.Root
       ref={ref}
-      value={localValue}
-      onValueChange={handleValueChange}
+      value={value}
       className={cn(
         "relative flex w-full touch-none select-none items-center group",
         className
