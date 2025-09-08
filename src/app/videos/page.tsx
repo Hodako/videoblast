@@ -1,10 +1,22 @@
 // src/app/videos/page.tsx
-import Header from '@/components/header';
-import { videos } from '@/lib/data';
-import VideoCard from '@/components/video-card';
+'use client';
 
-export default async function VideosPage() {
-  const allVideos = await videos();
+import Header from '@/components/header';
+import VideoCard from '@/components/video-card';
+import { getVideos } from '@/lib/data';
+import { useEffect, useState } from 'react';
+
+export default function VideosPage() {
+  const [allVideos, setAllVideos] = useState([]);
+  
+  useEffect(() => {
+    async function loadVideos() {
+      const videosData = await getVideos();
+      setAllVideos(videosData);
+    }
+    loadVideos();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />

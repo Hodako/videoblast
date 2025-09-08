@@ -166,6 +166,15 @@ router.put('/videos/reorder', async (req, res) => {
 
 
 // Shorts
+router.get('/shorts', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM shorts');
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 router.post('/shorts', async (req, res) => {
   const { title, video_url, thumbnail_url, views } = req.body;
   try {
@@ -296,12 +305,17 @@ router.put('/playlists/:id', async (req, res) => {
 router.delete('/playlists/:id', async (req, res) => {
   const { id } = req.params;
   try {
+    await client.query('BEGIN');
     await pool.query('DELETE FROM playlist_videos WHERE playlist_id = $1', [id]);
     await pool.query('DELETE FROM playlists WHERE id = $1', [id]);
+    await client.query('COMMIT');
     res.status(204).send();
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 
@@ -371,11 +385,18 @@ router.put('/categories/:id', async (req, res) => {
 });
 router.delete('/categories/:id', async (req, res) => {
     const { id } = req.params;
+    const client = await pool.connect();
     try {
-        await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+        await client.query('BEGIN');
+        await client.query('DELETE FROM video_categories WHERE category_id = $1', [id]);
+        await client.query('DELETE FROM categories WHERE id = $1', [id]);
+        await client.query('COMMIT');
         res.status(204).send();
     } catch (error) {
+        await client.query('ROLLBACK');
         res.status(500).json({ message: 'Server error' });
+    } finally {
+        client.release();
     }
 });
 

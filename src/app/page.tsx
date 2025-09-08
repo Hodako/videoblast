@@ -32,17 +32,28 @@ export default function Home() {
     setLastY(y);
   }, [y, lastY]);
 
+  const fetchFilteredVideos = async (newFilters) => {
+      setIsLoading(true);
+      try {
+        const videosData = await getVideos(newFilters);
+        setAllVideos(videosData);
+      } catch (error) {
+        console.error("Failed to fetch filtered videos:", error);
+      } finally {
+        setIsLoading(false);
+      }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const videosData = await getVideos();
+        const videosData = await getVideos(filters);
         const shortsData = await getShorts();
         setAllVideos(videosData);
         setShorts(shortsData);
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
-        // Handle the error appropriately, maybe show a toast
       } finally {
         setIsLoading(false);
       }
@@ -52,19 +63,9 @@ export default function Home() {
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+    fetchFilteredVideos(newFilters);
   };
   
-  const filteredVideos = useMemo(() => {
-    if (!allVideos) return [];
-    return allVideos.filter(video => {
-      if (filters.types.length > 0 && !filters.types.includes(video.type)) {
-        return false;
-      }
-      return true;
-    });
-  }, [allVideos, filters]);
-
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
@@ -85,7 +86,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <MainContent videos={filteredVideos} shorts={shorts} />
+            <MainContent videos={allVideos} shorts={shorts} />
           )}
         </main>
       </div>

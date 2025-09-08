@@ -15,6 +15,7 @@ import Link from "next/link";
 import Header from "@/components/header";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -22,21 +23,46 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSignup = async () => {
-    const response = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password, firstName, lastName }),
-    });
+    if (!firstName || !lastName || !email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: "Please fill out all fields.",
+      });
+      return;
+    }
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, firstName, lastName }),
+      });
 
-    if (response.ok) {
-      router.push('/login');
-    } else {
-      // Handle error
-      console.error('Signup failed');
+      if (response.ok) {
+        toast({
+          title: "Signup Successful",
+          description: "You can now log in with your credentials.",
+        });
+        router.push('/login');
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Signup Failed",
+          description: errorData.message || "An error occurred. Please try again.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: "Could not connect to the server.",
+      });
     }
   };
 
@@ -55,20 +81,20 @@ export default function SignupPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="first-name">First name</Label>
-              <Input id="first-name" placeholder="Max" required onChange={(e) => setFirstName(e.target.value)} />
+              <Input id="first-name" placeholder="Max" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="last-name">Last name</Label>
-              <Input id="last-name" placeholder="Robinson" required onChange={(e) => setLastName(e.target.value)} />
+              <Input id="last-name" placeholder="Robinson" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required onChange={(e) => setPassword(e.target.value)} />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col">

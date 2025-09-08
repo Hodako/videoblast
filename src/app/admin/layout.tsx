@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Settings, Video, Film, Image as ImageIcon, BarChart2, List, User, Tag } from 'lucide-react';
+import { Home, Settings, Video, Film, ImageIcon, BarChart2, List, User, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
 import { useEffect, useState } from 'react';

@@ -13,8 +13,15 @@ const pool = new Pool({
 });
 
 router.get('/', async (req, res) => {
+  const { type } = req.query;
   try {
-    const result = await pool.query('SELECT * FROM videos ORDER BY display_order');
+    let query = 'SELECT * FROM videos ORDER BY display_order';
+    const params = [];
+    if (type) {
+        query = 'SELECT * FROM videos WHERE type = $1 ORDER BY display_order';
+        params.push(type);
+    }
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -22,10 +29,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
+router.get('/:slug', async (req, res) => {
+  const { slug } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM videos WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM videos WHERE REPLACE(LOWER(title), \' \', \'-\') = $1', [slug]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Video not found' });
     }

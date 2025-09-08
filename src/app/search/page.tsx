@@ -3,36 +3,35 @@ import { useSearchParams } from 'next/navigation';
 import Header from '@/components/header';
 import { getVideos } from '@/lib/data';
 import VideoCard from '@/components/video-card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function SearchPage() {
+function SearchComponent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [allVideos, setAllVideos] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchAndFilter = async () => {
+      if (!query) {
+        setFilteredVideos([]);
+        return;
+      }
+      setIsLoading(true);
       const videosData = await getVideos();
-      setAllVideos(videosData);
-    };
-    fetchVideos();
-  }, []);
-
-  useEffect(() => {
-    if (query && allVideos.length > 0) {
       const lowercasedQuery = query.toLowerCase();
-      const results = allVideos.filter(
+      const results = videosData.filter(
         (video) =>
           video.title.toLowerCase().includes(lowercasedQuery) ||
           video.description.toLowerCase().includes(lowercasedQuery) ||
           video.subtitle.toLowerCase().includes(lowercasedQuery)
       );
       setFilteredVideos(results);
-    } else {
-      setFilteredVideos([]);
-    }
-  }, [query, allVideos]);
+      setIsLoading(false);
+    };
+    fetchAndFilter();
+  }, [query]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -41,7 +40,9 @@ export default function SearchPage() {
         <h1 className="text-2xl font-bold mb-5">
           Search results for: <span className="text-primary">{query}</span>
         </h1>
-        {filteredVideos.length > 0 ? (
+        {isLoading ? (
+            <p>Loading...</p>
+        ) : filteredVideos.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
             {filteredVideos.map((video) => (
               <VideoCard key={video.id} video={video} />
@@ -55,4 +56,13 @@ export default function SearchPage() {
       </main>
     </div>
   );
+}
+
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div>Loading search...</div>}>
+            <SearchComponent />
+        </Suspense>
+    )
 }

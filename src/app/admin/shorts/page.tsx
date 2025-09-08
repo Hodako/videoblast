@@ -88,7 +88,7 @@ export default function AdminShortsPage() {
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Views</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -96,8 +96,8 @@ export default function AdminShortsPage() {
                 <TableRow key={short.id}>
                   <TableCell className="font-medium">{short.title}</TableCell>
                   <TableCell>{short.views}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
                         {/* <Button variant="outline" size="icon"><Edit className="w-4 h-4"/></Button> */}
                         <Button variant="destructive" size="icon" onClick={() => handleDeleteShort(short.id)}><Trash className="w-4 h-4"/></Button>
                     </div>

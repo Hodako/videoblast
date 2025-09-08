@@ -24,28 +24,40 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (response.ok) {
-      const { token, user } = await response.json();
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      router.push('/');
-      router.refresh(); 
-    } else {
-      const errorData = await response.json();
-      toast({
+      if (response.ok) {
+        const { token, user } = await response.json();
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        router.push(user.role === 'admin' ? '/admin' : '/');
+        // This is a bit of a hack to force a re-render of the header
+        setTimeout(() => router.refresh(), 100);
+      } else {
+        const errorData = await response.json();
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: errorData.message || "Invalid credentials. Please try again.",
+        })
+      }
+    } catch (error) {
+       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: errorData.message || "Invalid credentials. Please try again.",
+        description: "Could not connect to the server.",
       })
-      console.error('Login failed');
     }
   };
 

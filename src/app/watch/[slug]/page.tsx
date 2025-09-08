@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Header from '@/components/header';
-import { getVideos, getComments, getSiteSettings } from '@/lib/data';
+import { getVideoBySlug, getVideos, getComments, getSiteSettings, getCreators } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send } from 'lucide-react';
@@ -20,16 +20,6 @@ import Link from 'next/link';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 
-
-const slugify = (text: string) => {
-    if (!text) return '';
-    return text.toString().toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-        .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
-}
 
 export default function WatchPage() {
   const params = useParams();
@@ -48,11 +38,12 @@ export default function WatchPage() {
       if (!slug) return;
       setIsLoading(true);
       try {
-        const allVideosData = await getVideos();
-        const currentVideo = allVideosData.find(v => slugify(v.title) === slug);
+        const currentVideo = await getVideoBySlug(slug);
+        
         if (currentVideo) {
             setVideo(currentVideo);
-            const recVids = allVideosData.filter(v => slugify(v.title) !== slug);
+            const allVideosData = await getVideos();
+            const recVids = allVideosData.filter(v => v.id !== currentVideo.id);
             setRecommendedVideos(recVids);
             // const commentsData = await getComments(currentVideo.id);
             // setComments(commentsData);
@@ -69,7 +60,7 @@ export default function WatchPage() {
     const fetchSiteSettings = async () => {
       try {
         const settings = await getSiteSettings();
-        if(settings) {
+        if(settings && Object.keys(settings).length > 0) {
           setSiteSettings({
             siteName: settings.siteName || 'StreamVerse',
             siteLogoUrl: settings.siteLogoUrl || '',
@@ -441,8 +432,8 @@ export default function WatchPage() {
             </div>
             <div className="py-4">
               <h1 className="text-2xl font-bold">{video.title}</h1>
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mt-2">
+                <div className="flex items-center gap-4 mb-4 md:mb-0">
                   {siteSettings.siteLogoUrl ? (
                     <Avatar>
                       <AvatarImage src={siteSettings.siteLogoUrl} alt={siteSettings.siteName} />
