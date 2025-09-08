@@ -44,12 +44,12 @@ export default function CustomizePage() {
     fetchData();
   }, [toast]);
 
-  const handleSave = async (key: string, value: any) => {
+  const handleSaveSettings = async () => {
     try {
-      await updateSiteSettings({ key, value });
-      toast({ title: "Success", description: `${key.charAt(0).toUpperCase() + key.slice(1)} settings saved.` });
+      await updateSiteSettings({ key: 'siteSettings', value: settings });
+      toast({ title: "Success", description: "Site settings updated." });
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: `Failed to save ${key}.` });
+      toast({ variant: "destructive", title: "Error", description: `Failed to save settings.` });
     }
   };
 
@@ -63,13 +63,13 @@ export default function CustomizePage() {
     }
   };
   
-  const handleInputChange = (part: 'theme' | 'bannerText' | 'siteName' | 'siteLogoUrl', key: string, value: string) => {
-    if (part === 'theme') {
-      setSettings(prev => ({ ...prev, theme: { ...prev.theme, [key]: value } }));
-    } else {
-      setSettings(prev => ({ ...prev, [part]: value }));
-    }
+  const handleInputChange = (part, value) => {
+    setSettings(prev => ({ ...prev, [part]: value }));
   };
+  
+  const handleThemeChange = (key, value) => {
+     setSettings(prev => ({ ...prev, theme: { ...prev.theme, [key]: value } }));
+  }
 
   return (
     <div>
@@ -84,14 +84,11 @@ export default function CustomizePage() {
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="site-name">Site Name</Label>
-              <Input id="site-name" value={settings.siteName} onChange={(e) => handleInputChange('siteName', 'siteName', e.target.value)} />
+              <Input id="site-name" value={settings.siteName} onChange={(e) => handleInputChange('siteName', e.target.value)} />
             </div>
              <div className="space-y-2">
               <Label htmlFor="site-logo-url">Site Logo URL</Label>
-              <Input id="site-logo-url" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', 'siteLogoUrl', e.target.value)} />
-            </div>
-             <div className="flex items-end md:col-span-2">
-                <Button onClick={() => handleSave('siteName', settings.siteName) && handleSave('siteLogoUrl', settings.siteLogoUrl)}>Save Identity</Button>
+              <Input id="site-logo-url" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', e.target.value)} />
             </div>
           </CardContent>
         </Card>
@@ -105,26 +102,23 @@ export default function CustomizePage() {
             <div className="space-y-2">
               <Label htmlFor="primary-color">Primary Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" id="primary-color" value={settings.theme.primaryColor} onChange={(e) => handleInputChange('theme', 'primaryColor', e.target.value)} className="w-12 h-10 p-1" />
-                <Input type="text" value={settings.theme.primaryColor} onChange={(e) => handleInputChange('theme', 'primaryColor', e.target.value)} />
+                <Input type="color" id="primary-color" value={settings.theme.primaryColor} onChange={(e) => handleThemeChange('primaryColor', e.target.value)} className="w-12 h-10 p-1" />
+                <Input type="text" value={settings.theme.primaryColor} onChange={(e) => handleThemeChange('primaryColor', e.target.value)} />
               </div>
               <p className="text-xs text-muted-foreground">Used for buttons, links, and highlights.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="accent-color">Accent Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" id="accent-color" value={settings.theme.accentColor} onChange={(e) => handleInputChange('theme', 'accentColor', e.target.value)} className="w-12 h-10 p-1" />
-                <Input type="text" value={settings.theme.accentColor} onChange={(e) => handleInputChange('theme', 'accentColor', e.target.value)} />
+                <Input type="color" id="accent-color" value={settings.theme.accentColor} onChange={(e) => handleThemeChange('accentColor', e.target.value)} className="w-12 h-10 p-1" />
+                <Input type="text" value={settings.theme.accentColor} onChange={(e) => handleThemeChange('accentColor', e.target.value)} />
               </div>
                <p className="text-xs text-muted-foreground">Used for interactive elements.</p>
             </div>
              <div className="space-y-2">
               <Label htmlFor="font-family">Font Family</Label>
-              <Input id="font-family" value={settings.theme.fontFamily} onChange={(e) => handleInputChange('theme', 'fontFamily', e.target.value)} />
+              <Input id="font-family" value={settings.theme.fontFamily} onChange={(e) => handleThemeChange('fontFamily', e.target.value)} />
               <p className="text-xs text-muted-foreground">Enter a font name from Google Fonts.</p>
-            </div>
-            <div className="flex items-end">
-                <Button onClick={() => handleSave('theme', settings.theme)}>Save Theme</Button>
             </div>
           </CardContent>
         </Card>
@@ -135,8 +129,7 @@ export default function CustomizePage() {
             <CardDescription>Edit the text displayed in the top promotional banner.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea value={settings.bannerText} onChange={(e) => handleInputChange('bannerText', 'bannerText', e.target.value)} />
-            <Button onClick={() => handleSave('bannerText', settings.bannerText)}>Save Banner Text</Button>
+            <Textarea value={settings.bannerText} onChange={(e) => handleInputChange('bannerText', e.target.value)} />
           </CardContent>
         </Card>
 
@@ -157,6 +150,10 @@ export default function CustomizePage() {
             <Button className="mt-4" onClick={handleOrderSave}>Save Order</Button>
           </CardContent>
         </Card>
+        
+        <div className="flex justify-end">
+            <Button onClick={handleSaveSettings} size="lg">Save All Settings</Button>
+        </div>
       </div>
     </div>
   )

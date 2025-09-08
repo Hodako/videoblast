@@ -220,14 +220,14 @@ export default function AdminVideosPage() {
       </Dialog>
 
       <Card>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead>Uploaded</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -236,8 +236,8 @@ export default function AdminVideosPage() {
                   <TableCell className="font-medium">{video.title}</TableCell>
                   <TableCell>{video.views}</TableCell>
                   <TableCell>{format(new Date(video.uploaded), "PP")}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
                         <Button variant="outline" size="icon" onClick={() => handleOpenDialog(video)}><Edit className="w-4 h-4"/></Button>
                         <Button variant="destructive" size="icon" onClick={() => handleDeleteVideo(video.id)}><Trash className="w-4 h-4"/></Button>
                     </div>

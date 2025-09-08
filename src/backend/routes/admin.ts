@@ -229,7 +229,15 @@ router.delete('/images/:id', async (req, res) => {
 // Playlists
 router.get('/playlists', async (req, res) => {
     try {
-        const result = await pool.query('SELECT p.*, (SELECT COUNT(*) FROM playlist_videos pv WHERE pv.playlist_id = p.id) as video_count FROM playlists p');
+        const result = await pool.query(`
+            SELECT p.*, 
+                   (SELECT COUNT(*) FROM playlist_videos pv WHERE pv.playlist_id = p.id) as video_count,
+                   COALESCE(json_agg(v.*) FILTER (WHERE v.id IS NOT NULL), '[]') as videos
+            FROM playlists p
+            LEFT JOIN playlist_videos pv ON p.id = pv.playlist_id
+            LEFT JOIN videos v ON pv.video_id = v.id
+            GROUP BY p.id
+        `);
         res.json(result.rows);
     } catch (error) {
         console.error(error);
@@ -300,12 +308,12 @@ router.delete('/playlists/:id', async (req, res) => {
 // Site Settings
 router.get('/settings', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM site_settings');
-    const settings = result.rows.reduce((acc, row) => {
-      acc[row.key] = row.value;
-      return acc;
-    }, {});
-    res.json(settings);
+    const result = await pool.query("SELECT value FROM site_settings WHERE key = 'siteSettings'");
+    if (result.rows.length > 0) {
+      res.json(result.rows[0].value);
+    } else {
+      res.json({}); // Return empty object if no settings found
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -315,7 +323,7 @@ router.get('/settings', async (req, res) => {
 router.put('/settings', async (req, res) => {
   const { key, value } = req.body;
   try {
-    const valueToStore = typeof value === 'object' ? JSON.stringify(value) : value;
+    const valueToStore = JSON.stringify(value);
     await pool.query(
       'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
       [key, valueToStore]

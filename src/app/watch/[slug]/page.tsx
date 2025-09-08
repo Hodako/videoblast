@@ -52,7 +52,8 @@ export default function WatchPage() {
         const currentVideo = allVideosData.find(v => slugify(v.title) === slug);
         if (currentVideo) {
             setVideo(currentVideo);
-            setRecommendedVideos(allVideosData.filter(v => slugify(v.title) !== slug));
+            const recVids = allVideosData.filter(v => slugify(v.title) !== slug);
+            setRecommendedVideos(recVids);
             // const commentsData = await getComments(currentVideo.id);
             // setComments(commentsData);
         } else {
@@ -442,12 +443,16 @@ export default function WatchPage() {
               <h1 className="text-2xl font-bold">{video.title}</h1>
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center gap-4">
-                  {siteSettings.siteLogoUrl && (
+                  {siteSettings.siteLogoUrl ? (
                     <Avatar>
                       <AvatarImage src={siteSettings.siteLogoUrl} alt={siteSettings.siteName} />
                       <AvatarFallback>{siteSettings.siteName.charAt(0)}</AvatarFallback>
                     </Avatar>
-                  )}
+                  ) : siteSettings.siteName ? (
+                     <Avatar>
+                      <AvatarFallback>{siteSettings.siteName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  ) : null }
                   <div>
                     <p className="font-semibold">{siteSettings.siteName}</p>
                     <p className="text-sm text-muted-foreground">{new Date(video.uploaded).toLocaleDateString()}</p>

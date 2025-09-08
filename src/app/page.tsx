@@ -11,6 +11,7 @@ import { useWindowScroll } from 'react-use';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getVideos, getShorts } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const { y } = useWindowScroll();
@@ -20,6 +21,7 @@ export default function Home() {
   const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
   const [filters, setFilters] = useState({ types: [] });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (y > lastY) {
@@ -32,10 +34,18 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const videosData = await getVideos();
-      const shortsData = await getShorts();
-      setAllVideos(videosData);
-      setShorts(shortsData);
+      setIsLoading(true);
+      try {
+        const videosData = await getVideos();
+        const shortsData = await getShorts();
+        setAllVideos(videosData);
+        setShorts(shortsData);
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+        // Handle the error appropriately, maybe show a toast
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchData();
   }, []);
@@ -45,6 +55,7 @@ export default function Home() {
   };
   
   const filteredVideos = useMemo(() => {
+    if (!allVideos) return [];
     return allVideos.filter(video => {
       if (filters.types.length > 0 && !filters.types.includes(video.type)) {
         return false;
@@ -63,7 +74,19 @@ export default function Home() {
           <SidebarContent onFilterChange={handleFilterChange} />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
-          <MainContent videos={filteredVideos} shorts={shorts} />
+          {isLoading ? (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+              </div>
+               <Skeleton className="h-48 w-full" />
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+              </div>
+            </div>
+          ) : (
+            <MainContent videos={filteredVideos} shorts={shorts} />
+          )}
         </main>
       </div>
 
