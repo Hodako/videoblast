@@ -7,7 +7,13 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS configuration to allow requests from the frontend
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:9002',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Public routes
