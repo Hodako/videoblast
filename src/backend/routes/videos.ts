@@ -15,10 +15,10 @@ const pool = new Pool({
 router.get('/', async (req, res) => {
   const { type } = req.query;
   try {
-    let query = 'SELECT * FROM videos ORDER BY display_order';
+    let query = 'SELECT * FROM "Video" ORDER BY display_order';
     const params = [];
     if (type) {
-        query = 'SELECT * FROM videos WHERE type = $1 ORDER BY display_order';
+        query = 'SELECT * FROM "Video" WHERE type = $1 ORDER BY display_order';
         params.push(type);
     }
     const result = await pool.query(query, params);
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 router.get('/:slug', async (req, res) => {
   const { slug } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM videos WHERE REPLACE(LOWER(title), \' \', \'-\') = $1', [slug]);
+    const result = await pool.query("SELECT * FROM \"Video\" WHERE REPLACE(LOWER(title), ' ', '-') = $1", [slug]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Video not found' });
     }
@@ -47,7 +47,7 @@ router.get('/search', async (req, res) => {
   const { q } = req.query;
   try {
     const result = await pool.query(
-      "SELECT * FROM videos WHERE title ILIKE $1 OR description ILIKE $1",
+      "SELECT * FROM \"Video\" WHERE title ILIKE $1 OR description ILIKE $1",
       [`%${q}%`]
     );
     res.json(result.rows);
@@ -60,7 +60,7 @@ router.get('/search', async (req, res) => {
 router.get('/:videoId/comments', async (req, res) => {
   const { videoId } = req.params;
   try {
-    const result = await pool.query('SELECT c.*, u.first_name, u.last_name FROM comments c JOIN users u ON c.user_id = u.id WHERE video_id = $1 ORDER BY c.created_at DESC', [videoId]);
+    const result = await pool.query('SELECT c.*, u.first_name, u.last_name FROM "Comment" c JOIN "User" u ON c.user_id = u.id WHERE video_id = $1 ORDER BY c.created_at DESC', [videoId]);
     res.json(result.rows);
   } catch (error) {
     console.error(error);
@@ -80,7 +80,7 @@ router.post('/:videoId/comments', async (req, res) => {
 
   try {
     const newComment = await pool.query(
-      'INSERT INTO comments (text, user_id, video_id) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO "Comment" (text, user_id, video_id) VALUES ($1, $2, $3) RETURNING *',
       [text, userId, videoId]
     );
     res.status(201).json(newComment.rows[0]);

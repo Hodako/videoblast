@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
@@ -27,13 +26,13 @@ router.post('/signup', async (req, res) => {
     const password_hash = await bcrypt.hash(password, salt);
 
     const newUser = await pool.query(
-      'INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, first_name, email, role',
+      'INSERT INTO "User" (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, first_name, email, role',
       [firstName, lastName, email, password_hash]
     );
 
     const user = newUser.rows[0];
 
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'secret', {
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'secret', {
       expiresIn: '1h'
     });
 
@@ -55,7 +54,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
     const user = result.rows[0];
 
     if (!user) {

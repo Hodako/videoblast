@@ -15,7 +15,7 @@ const pool = new Pool({
 // Public route
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM creators ORDER BY name');
+    const result = await pool.query('SELECT * FROM "Creator" ORDER BY name');
     res.json(result.rows);
   } catch (error) {
     console.error(error);

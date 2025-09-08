@@ -15,7 +15,7 @@ const pool = new Pool({
 
 router.get('/', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM shorts');
+    const result = await pool.query('SELECT * FROM "Short"');
     res.json(result.rows);
   } catch (error) {
     console.error(error);
