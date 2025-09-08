@@ -30,24 +30,27 @@ export default function WatchPage() {
   const [isBuffering, setIsBuffering] = useState(false);
   const [user, setUser] = useState(null);
   const [siteSettings, setSiteSettings] = useState({ siteName: 'StreamVerse', siteLogoUrl: '' });
-
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchVideoData = async () => {
       if (id === -1) return;
+      setIsLoading(true);
       try {
         const allVideosData = await getVideos();
         const currentVideo = allVideosData.find(v => v.id === id);
         if (currentVideo) {
             setVideo(currentVideo);
             setRecommendedVideos(allVideosData.filter(v => v.id !== id));
-            const commentsData = await getComments(currentVideo.id);
-            setComments(commentsData);
+            // const commentsData = await getComments(currentVideo.id);
+            // setComments(commentsData);
         } else {
             console.error("Video not found");
         }
       } catch (error) {
         console.error("Failed to fetch video data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -183,10 +186,6 @@ export default function WatchPage() {
     };
     const handleCanPlay = () => {
       setIsBuffering(false);
-      video.play().catch(e => {
-        console.log("Autoplay was prevented.", e);
-        setIsPlaying(false);
-      });
     };
 
     video.addEventListener('timeupdate', updateProgress);
@@ -200,10 +199,6 @@ export default function WatchPage() {
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     
-    // Start unmuted
-    video.muted = false;
-    setIsMuted(false);
-
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
     };
@@ -260,11 +255,20 @@ export default function WatchPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <Header />
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </div>
+    );
+  }
+
   if (!video) {
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
             <Header />
-            <p>Loading video...</p>
+            <p>Video not found.</p>
         </div>
     );
   }
@@ -302,18 +306,18 @@ export default function WatchPage() {
               )}
               <div 
                 className={cn(
-                  "absolute inset-0 bg-black/30 transition-opacity duration-300",
-                  showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+                  "absolute inset-0 bg-gradient-to-t from-black/50 to-transparent transition-opacity duration-300",
+                  showControls || !isPlaying ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
               >
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-10">
-                  <Button variant="ghost" size="icon" className="w-16 h-16" onClick={() => skipTime(-10)}>
+                  <Button variant="ghost" size="icon" className="w-16 h-16 text-white hover:bg-white/10 hover:text-white" onClick={() => skipTime(-10)}>
                     <RotateCcw className="w-10 h-10" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                  <Button variant="ghost" size="icon" className="w-20 h-20 text-white hover:bg-white/10 hover:text-white" onClick={handlePlayPause}>
                     {isPlaying ? <Pause className="w-12 h-12" /> : <Play className="w-12 h-12" />}
                   </Button>
-                  <Button variant="ghost" size="icon" className="w-16 h-16" onClick={() => skipTime(10)}>
+                  <Button variant="ghost" size="icon" className="w-16 h-16 text-white hover:bg-white/10 hover:text-white" onClick={() => skipTime(10)}>
                     <RotateCw className="w-10 h-10" />
                   </Button>
                 </div>
@@ -403,10 +407,10 @@ export default function WatchPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost">
-                    <ThumbsUp className="mr-2 h-4 w-4" /> 15K
+                    <ThumbsUp className="mr-2 h-4 w-4" /> {video.likes || 0}
                   </Button>
                   <Button variant="ghost">
-                    <ThumbsDown className="mr-2 h-4 w-4" /> 1K
+                    <ThumbsDown className="mr-2 h-4 w-4" /> {video.dislikes || 0}
                   </Button>
                   <Button variant="ghost">
                     <Share2 className="mr-2 h-4 w-4" /> Share
