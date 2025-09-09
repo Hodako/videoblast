@@ -87,6 +87,7 @@ export default function ShortsPage() {
           className="w-full h-full object-cover"
           onClick={(e) => e.currentTarget.paused ? e.currentTarget.play() : e.currentTarget.pause()}
           autoPlay
+          muted // Muted to allow autoplay
         />
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
@@ -96,20 +97,19 @@ export default function ShortsPage() {
               <AvatarFallback>{currentShort.title.charAt(0)}</AvatarFallback>
             </Avatar>
             <p className="font-semibold text-sm">@{currentShort.title.split(' ').join('').toLowerCase()}</p>
-            <Button variant="outline" size="sm" className="ml-2 bg-white text-black border-none h-7">Follow</Button>
           </div>
           <p className="text-sm">{currentShort.title}</p>
-          <p className="text-xs text-neutral-300">{currentShort.views}</p>
+          <p className="text-xs text-neutral-300">{currentShort.views} views</p>
         </div>
 
         <div className="absolute right-2 bottom-20 flex flex-col items-center gap-4 text-white">
           <Button variant="ghost" size="icon" className="flex flex-col h-auto">
             <Heart className="w-8 h-8"/>
-            <span className="text-xs">15k</span>
+            <span className="text-xs">Like</span>
           </Button>
           <Button variant="ghost" size="icon" className="flex flex-col h-auto">
             <MessageCircle className="w-8 h-8"/>
-            <span className="text-xs">1.2k</span>
+            <span className="text-xs">Comment</span>
           </Button>
           <Button variant="ghost" size="icon" className="flex flex-col h-auto">
             <Share2 className="w-8 h-8"/>

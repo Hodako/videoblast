@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAdminVideos, addVideo, updateVideo, deleteVideo, getAdminCategories } from "@/lib/data";
+import { getAdminVideos, addVideo, updateVideo, deleteVideo, getAdminCategories, getAdminCreators } from "@/lib/data";
 import { PlusCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +19,7 @@ export default function AdminVideosPage() {
   const { toast } = useToast();
   const [videos, setVideos] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [creators, setCreators] = useState([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentVideo, setCurrentVideo] = useState({
@@ -34,7 +35,8 @@ export default function AdminVideosPage() {
     views: 0,
     uploaded: new Date().toISOString(),
     categoryIds: [],
-    type: 'straight'
+    type: 'straight',
+    creator_id: null,
   });
 
   const fetchVideos = async () => {
@@ -46,18 +48,20 @@ export default function AdminVideosPage() {
     }
   };
   
-  const fetchCategories = async () => {
+  const fetchRelatedData = async () => {
     try {
-      const data = await getAdminCategories();
-      setCategories(data);
+      const catData = await getAdminCategories();
+      setCategories(catData);
+      const creatorData = await getAdminCreators();
+      setCreators(creatorData);
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to load categories." });
+      toast({ variant: "destructive", title: "Error", description: "Failed to load categories or creators." });
     }
   };
 
   useEffect(() => {
     fetchVideos();
-    fetchCategories();
+    fetchRelatedData();
   }, []);
 
   const handleOpenDialog = (video = null) => {
@@ -67,7 +71,8 @@ export default function AdminVideosPage() {
         ...video,
         tags: Array.isArray(video.tags) ? video.tags.join(', ') : '',
         meta_data: video.meta_data ? (typeof video.meta_data === 'string' ? JSON.parse(video.meta_data) : video.meta_data) : { seo_title: '', seo_description: '' },
-        categoryIds: video.categories?.map(c => c.id) || []
+        categoryIds: video.categories?.map(c => c.category.id) || [],
+        creator_id: video.creator_id,
       });
     } else {
       setIsEditing(false);
@@ -84,7 +89,8 @@ export default function AdminVideosPage() {
         views: 0,
         uploaded: new Date().toISOString(),
         categoryIds: [],
-        type: 'straight'
+        type: 'straight',
+        creator_id: null,
       });
     }
     setIsDialogOpen(true);
@@ -112,7 +118,7 @@ export default function AdminVideosPage() {
       fetchVideos();
       setIsDialogOpen(false);
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save video." });
+      toast({ variant: "destructive", title: "Error", description: `Failed to save video: ${error.message}` });
     }
   };
 
@@ -130,6 +136,10 @@ export default function AdminVideosPage() {
     const { id, value } = e.target;
     setCurrentVideo(prev => ({ ...prev, [id]: value }));
   };
+  
+  const handleSelectChange = (id, value) => {
+     setCurrentVideo(prev => ({ ...prev, [id]: value }));
+  }
 
   const handleMetaDataChange = (e) => {
     const { id, value } = e.target;
@@ -167,8 +177,21 @@ export default function AdminVideosPage() {
               <Textarea id="description" value={currentVideo.description} onChange={handleInputChange} placeholder="Video Description" className="col-span-3" />
             </div>
              <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="creator_id" className="text-right">Creator/Channel</Label>
+              <Select value={currentVideo.creator_id} onValueChange={(value) => handleSelectChange('creator_id', value)}>
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select creator" />
+                </SelectTrigger>
+                <SelectContent>
+                    {creators.map((creator: any) => (
+                      <SelectItem key={creator.id} value={creator.id}>{creator.name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">Type</Label>
-              <Select value={currentVideo.type} onValueChange={(value) => setCurrentVideo(prev => ({...prev, type: value}))}>
+              <Select value={currentVideo.type} onValueChange={(value) => handleSelectChange('type', value)}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -225,6 +248,7 @@ export default function AdminVideosPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Creator</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead>Uploaded</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -234,6 +258,7 @@ export default function AdminVideosPage() {
               {videos.map((video: any) => (
                 <TableRow key={video.id}>
                   <TableCell className="font-medium">{video.title}</TableCell>
+                  <TableCell>{video.creator?.name || 'N/A'}</TableCell>
                   <TableCell>{video.views.toLocaleString()}</TableCell>
                   <TableCell>{format(new Date(video.uploaded), "PP")}</TableCell>
                   <TableCell className="text-right">

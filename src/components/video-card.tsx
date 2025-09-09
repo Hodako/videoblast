@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from './ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 type VideoCardProps = {
   video: {
@@ -14,6 +15,10 @@ type VideoCardProps = {
     uploaded: string;
     thumbnail_url: string;
     slug: string;
+    creator: {
+        name: string;
+        image_url: string;
+    }
   };
 };
 
@@ -22,9 +27,12 @@ export default function VideoCard({ video }: VideoCardProps) {
     return (
        <div className="group">
           <Skeleton className="w-full aspect-video rounded-lg" />
-          <div className="p-2">
-            <Skeleton className="h-5 w-3/4 mb-1" />
-            <Skeleton className="h-4 w-1/2" />
+          <div className="flex gap-4 pt-2">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="w-full space-y-2">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+            </div>
           </div>
       </div>
     )
@@ -41,7 +49,7 @@ export default function VideoCard({ video }: VideoCardProps) {
   const timeAgo = formatDistanceToNow(uploadedDate, { addSuffix: true });
 
   return (
-    <Link href={`/watch/${video.slug}`} className="group">
+    <Link href={`/watch/${video.slug}`} className="group space-y-2">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
         <div className="relative w-full aspect-video">
           <Image
@@ -56,9 +64,16 @@ export default function VideoCard({ video }: VideoCardProps) {
           </Badge>
         </div>
       </Card>
-      <div className="p-2">
-        <h3 className="font-bold text-sm leading-snug truncate group-hover:text-primary transition-colors">{video.title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">{formatViews(video.views)} &bull; {timeAgo}</p>
+      <div className="flex gap-3">
+        <Avatar className="h-9 w-9">
+            <AvatarImage src={video.creator?.image_url} alt={video.creator?.name} />
+            <AvatarFallback>{video.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
+        </Avatar>
+        <div>
+            <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">{video.title}</h3>
+            <p className="text-xs text-muted-foreground mt-1">{video.creator?.name}</p>
+            <p className="text-xs text-muted-foreground">{formatViews(video.views)} &bull; {timeAgo}</p>
+        </div>
       </div>
     </Link>
   );

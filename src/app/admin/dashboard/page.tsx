@@ -7,18 +7,17 @@ import { DollarSign, Users, Video, Eye } from "lucide-react"
 import { getAdminDashboardData } from "@/lib/data";
 
 const monthlyData = [
-  { name: 'Jan', views: 4000, revenue: 2400 },
-  { name: 'Feb', views: 3000, revenue: 1398 },
-  { name: 'Mar', views: 2000, revenue: 9800 },
-  { name: 'Apr', views: 2780, revenue: 3908 },
-  { name: 'May', views: 1890, revenue: 4800 },
-  { name: 'Jun', views: 2390, revenue: 3800 },
-  { name: 'Jul', views: 3490, revenue: 4300 },
+  { name: 'Jan', views: 4000 },
+  { name: 'Feb', views: 3000 },
+  { name: 'Mar', views: 2000 },
+  { name: 'Apr', views: 2780 },
+  { name: 'May', views: 1890 },
+  { name: 'Jun', views: 2390 },
+  { name: 'Jul', views: 3490 },
 ];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
-    totalRevenue: '0',
     newSubscribers: '0',
     totalVideos: '0',
     totalViews: '0'
@@ -29,7 +28,6 @@ export default function DashboardPage() {
       try {
         const data = await getAdminDashboardData();
         setStats({
-          totalRevenue: data.totalRevenue || '45,231.89', // Example data
           newSubscribers: data.newSubscribers || '+2350', // Example data
           totalVideos: data.totalVideos || '0',
           totalViews: data.totalViews || '0'
@@ -44,17 +42,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
@@ -87,7 +75,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-1">
         <Card>
           <CardHeader>
             <CardTitle>Views Overview</CardTitle>
@@ -102,23 +90,6 @@ export default function DashboardPage() {
                 <Legend />
                 <Bar dataKey="views" fill="hsl(var(--primary))" />
               </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" />
-                </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

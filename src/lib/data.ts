@@ -88,30 +88,22 @@ export const getSiteSettings = async () => {
 
 // --- Engagement Functions ---
 export const postComment = async (videoId: number, text: string) => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if(!user.id) throw new Error("User not logged in");
     return apiRequest(`/videos/${videoId}/comments`, {
         method: 'POST',
-        body: JSON.stringify({ text, userId: user.id })
+        body: JSON.stringify({ text })
     });
 }
 
 export const likeVideo = async (videoId: number) => {
-     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if(!user.id) throw new Error("User not logged in");
-    return apiRequest(`/videos/${videoId}/like`, {
-        method: 'POST',
-        body: JSON.stringify({ userId: user.id })
-    });
+    return apiRequest(`/videos/${videoId}/like`, { method: 'POST' });
 }
 
 export const unlikeVideo = async (videoId: number) => {
-     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if(!user.id) throw new Error("User not logged in");
-    return apiRequest(`/videos/${videoId}/unlike`, {
-        method: 'POST',
-        body: JSON.stringify({ userId: user.id })
-    });
+    return apiRequest(`/videos/${videoId}/like`, { method: 'DELETE' });
+}
+
+export const getLikes = async (videoId: number) => {
+    return apiRequest(`/videos/${videoId}/likes`);
 }
 
 

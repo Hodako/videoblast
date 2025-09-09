@@ -26,7 +26,7 @@ export default function ShortsCard({ short, index }: ShortsCardProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
       <div className="absolute bottom-0 left-0 right-0 p-2.5">
         <h3 className="text-xs font-bold text-white truncate">{short.title}</h3>
-        <p className="text-[10px] text-muted-foreground">{short.views}</p>
+        <p className="text-[10px] text-neutral-300">{short.views} views</p>
       </div>
     </Card>
     </Link>

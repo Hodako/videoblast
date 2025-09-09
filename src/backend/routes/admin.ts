@@ -7,6 +7,13 @@ dotenv.config();
 
 const router = Router();
 
+function createSlug(title: string) {
+  return title
+    .toLowerCase()
+    .replace(/ /g, '-')
+    .replace(/[^\w-]+/g, '');
+}
+
 const adminAuth = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -44,7 +51,6 @@ router.get('/stats', async (req, res) => {
     res.json({
       totalVideos: videoCount.toString(),
       totalViews: totalViews.toLocaleString(),
-      totalRevenue: '55,123.89', // Example data
       newSubscribers: '+2500', // Example data
     });
   } catch (error) {
@@ -63,7 +69,8 @@ router.get('/videos', async (req, res) => {
                     select: {
                         category: true
                     }
-                }
+                },
+                creator: true,
             },
             orderBy: {
                 display_order: 'asc'
@@ -81,7 +88,7 @@ router.get('/videos', async (req, res) => {
 });
 
 router.post('/videos', async (req, res) => {
-  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type, creator_id } = req.body;
   
   if(!title || !video_url) {
     return res.status(400).json({ message: 'Title and Video URL are required' });
@@ -90,7 +97,10 @@ router.post('/videos', async (req, res) => {
   try {
     const newVideo = await prisma.video.create({
         data: {
-            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, uploader_id: req.user.id, type,
+            title, 
+            slug: createSlug(title),
+            description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, uploader_id: req.user.id, type,
+            creator_id: creator_id ? parseInt(creator_id, 10) : undefined,
             categories: {
                 create: categoryIds.map(id => ({
                     category: {
@@ -103,13 +113,16 @@ router.post('/videos', async (req, res) => {
     res.status(201).json(newVideo);
   } catch (error) {
       console.error(error);
+      if (error.code === 'P2002') { // Unique constraint violation
+        return res.status(409).json({ message: 'A video with this title already exists. Please choose a unique title.'});
+      }
       res.status(500).json({ message: 'Server error' });
   }
 });
 
 router.put('/videos/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type } = req.body;
+  const { title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, categoryIds = [], type, creator_id } = req.body;
 
   if(!title || !video_url) {
     return res.status(400).json({ message: 'Title and Video URL are required' });
@@ -124,7 +137,10 @@ router.put('/videos/:id', async (req, res) => {
       const updatedVideo = await tx.video.update({
         where: { id: parseInt(id) },
         data: {
-            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, type,
+            title, 
+            slug: createSlug(title),
+            description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, type,
+            creator_id: creator_id ? parseInt(creator_id, 10) : undefined,
             categories: {
                 create: categoryIds.map(catId => ({
                     category: {
@@ -138,6 +154,9 @@ router.put('/videos/:id', async (req, res) => {
     });
   } catch (error) {
       console.error(error);
+      if (error.code === 'P2002') { // Unique constraint violation
+        return res.status(409).json({ message: 'A video with this title already exists. Please choose a unique title.'});
+      }
       res.status(500).json({ message: 'Server error' });
   }
 });
@@ -250,9 +269,7 @@ router.get('/playlists', async (req, res) => {
                         video: true
                     }
                 },
-                _count: {
-                    select: { videos: true }
-                }
+                user: true
             }
         });
         res.json(playlists);
