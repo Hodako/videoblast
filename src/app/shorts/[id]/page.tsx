@@ -86,8 +86,7 @@ export default function ShortsPage() {
           loop
           className="w-full h-full object-cover"
           onClick={(e) => e.currentTarget.paused ? e.currentTarget.play() : e.currentTarget.pause()}
-          autoPlay
-          muted // Muted to allow autoplay
+          playsInline
         />
 
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
