@@ -13,6 +13,7 @@ type VideoCardProps = {
     views: number;
     uploaded: string;
     thumbnail_url: string;
+    slug: string;
   };
 };
 
@@ -40,7 +41,7 @@ export default function VideoCard({ video }: VideoCardProps) {
   const timeAgo = formatDistanceToNow(uploadedDate, { addSuffix: true });
 
   return (
-    <Link href={`/watch/${video.id}`} className="group">
+    <Link href={`/watch/${video.slug}`} className="group">
       <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
         <div className="relative w-full aspect-video">
           <Image
@@ -62,5 +63,3 @@ export default function VideoCard({ video }: VideoCardProps) {
     </Link>
   );
 }
-
-    

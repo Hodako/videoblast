@@ -2,97 +2,6 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-// --- Public Data Fetching Functions ---
-
-export async function getVideos(filters: { types?: string[] } = {}) {
-  try {
-    const params = new URLSearchParams();
-    if (filters.types && filters.types.length > 0) {
-      filters.types.forEach(type => params.append('type', type));
-    }
-    const response = await fetch(`${API_URL}/videos?${params.toString()}`);
-    if (!response.ok) {
-      console.error('Failed to fetch videos:', response.statusText);
-      return [];
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching videos:', error);
-    return []; // Return empty array on error to prevent crashes
-  }
-}
-
-export async function getShorts() {
-  try {
-    const response = await fetch(`${API_URL}/shorts`);
-    if (!response.ok) {
-      console.error('Failed to fetch shorts:', response.statusText);
-      return [];
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching shorts:', error);
-    return []; // Return empty array on error
-  }
-}
-
-export const getComments = async (videoId: number) => {
-  try {
-    const response = await fetch(`${API_URL}/videos/${videoId}/comments`);
-    if (!response.ok) {
-      return [];
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching comments', error);
-    return [];
-  }
-};
-
-export async function getCategories() {
-  try {
-    const response = await fetch(`${API_URL}/categories`);
-    if (!response.ok) {
-      console.error('Failed to fetch categories:', response.statusText);
-      return [];
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return []; // Return empty array on error
-  }
-}
-
-export async function getCreators() {
-  try {
-    const response = await fetch(`${API_URL}/creators`);
-     if (!response.ok) {
-      console.error('Failed to fetch creators:', response.statusText);
-      return [];
-    }
-    return response.json();
-  } catch (error) {
-    console.error('Error fetching creators:', error);
-    return []; // Return empty array on error
-  }
-}
-
-export const getVideoById = async (id: number) => {
-    if (!id) return null;
-    try {
-        const response = await fetch(`${API_URL}/videos/${id}`);
-        if (!response.ok) {
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching video by id:', error);
-        return null;
-    }
-};
-
-// --- Admin Data Fetching Functions ---
-
 const getToken = () => {
   if (typeof window === 'undefined') {
     return null;
@@ -100,329 +9,153 @@ const getToken = () => {
   return localStorage.getItem('token');
 };
 
-export const getAdminDashboardData = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/stats`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch dashboard data');
+const handleResponse = async (response: Response) => {
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error: ${response.statusText}`, errorText);
+    try {
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.message || 'An unknown error occurred');
+    } catch {
+      throw new Error(errorText || 'An unknown error occurred');
+    }
+  }
+  if (response.status === 204) {
+    return null; // No content
+  }
   return response.json();
+}
+
+const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const token = getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+    return handleResponse(response);
+  } catch (error) {
+    console.error(`Fetch error for ${endpoint}:`, error);
+    throw error;
+  }
 };
 
-export const getAdminVideos = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/videos`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch admin videos');
-  return response.json();
+
+// --- Public Data Fetching Functions ---
+
+export async function getVideos(filters: { types?: string[] } = {}) {
+  const params = new URLSearchParams();
+  if (filters.types && filters.types.length > 0) {
+    filters.types.forEach(type => params.append('type', type));
+  }
+  return apiRequest(`/videos?${params.toString()}`);
+}
+
+export async function getShorts() {
+  return apiRequest('/shorts');
+}
+
+export const getComments = async (videoId: number) => {
+  return apiRequest(`/videos/${videoId}/comments`);
 };
 
-export const getAdminShorts = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/shorts`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch admin shorts');
-  return response.json();
-};
+export async function getCategories() {
+  return apiRequest('/categories');
+}
 
-export const getAdminImages = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/images`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch admin images');
-  return response.json();
-};
+export async function getCreators() {
+  return apiRequest('/creators');
+}
 
-export const getAdminPlaylists = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/playlists`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch admin playlists');
-  return response.json();
+export const getVideoBySlug = async (slug: string) => {
+    if (!slug) return null;
+    return apiRequest(`/videos/by-slug/${slug}`);
 };
 
 export const getSiteSettings = async () => {
-    // This can be a public route, but we check for admin token for editing
     try {
-        const response = await fetch(`${API_URL}/admin/settings`);
-        if (!response.ok) return { siteName: 'StreamVerse', siteLogoUrl: '' }; // Fallback
-        return response.json();
+        // This is a public route on the main API, but we'll use the admin one for consistency in this file
+        return await apiRequest('/admin/settings');
     } catch (e) {
         return { siteName: 'StreamVerse', siteLogoUrl: '' }; // Fallback
     }
 };
 
-export const updateSiteSettings = async (settings: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/settings`, {
+// --- Engagement Functions ---
+export const postComment = async (videoId: number, text: string) => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if(!user.id) throw new Error("User not logged in");
+    return apiRequest(`/videos/${videoId}/comments`, {
+        method: 'POST',
+        body: JSON.stringify({ text, userId: user.id })
+    });
+}
+
+export const likeVideo = async (videoId: number) => {
+     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if(!user.id) throw new Error("User not logged in");
+    return apiRequest(`/videos/${videoId}/like`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: user.id })
+    });
+}
+
+export const unlikeVideo = async (videoId: number) => {
+     const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if(!user.id) throw new Error("User not logged in");
+    return apiRequest(`/videos/${videoId}/unlike`, {
+        method: 'POST',
+        body: JSON.stringify({ userId: user.id })
+    });
+}
+
+
+// --- Admin Data Functions ---
+
+export const getAdminDashboardData = async () => apiRequest('/admin/stats');
+export const getAdminVideos = async () => apiRequest('/admin/videos');
+export const getAdminShorts = async () => apiRequest('/admin/shorts');
+export const getAdminImages = async () => apiRequest('/admin/images');
+export const getAdminPlaylists = async () => apiRequest('/admin/playlists');
+export const getAdminCategories = async () => apiRequest('/admin/categories');
+export const getAdminCreators = async () => apiRequest('/admin/creators');
+
+export const updateSiteSettings = async (settings: any) => apiRequest('/admin/settings', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(settings),
-  });
-  if (!response.ok) throw new Error('Failed to update settings');
-  return;
-};
+});
 
-export const reorderVideos = async (orderedVideos: any[]) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/videos/reorder`, {
+export const reorderVideos = async (orderedVideos: any[]) => apiRequest('/admin/videos/reorder', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(orderedVideos),
-  });
-  if (!response.ok) throw new Error('Failed to reorder videos');
-  return;
-};
+});
 
-export const addVideo = async (video: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/videos`, {
+export const addVideo = async (video: any) => apiRequest('/admin/videos', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(video),
-  });
-  if (!response.ok) throw new Error('Failed to add video');
-  return response.json();
-};
+});
 
-export const updateVideo = async (video: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/videos/${video.id}`, {
+export const updateVideo = async (video: any) => apiRequest(`/admin/videos/${video.id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(video),
-  });
-  if (!response.ok) throw new Error('Failed to update video');
-  return response.json();
-};
+});
 
-export const deleteVideo = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/videos/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete video');
-  return;
-};
-
-export const addShort = async (short: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/shorts`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(short),
-  });
-  if (!response.ok) throw new Error('Failed to add short');
-  return response.json();
-};
-
-export const deleteShort = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/shorts/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete short');
-  return;
-};
-
-export const addImage = async (image: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/images`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(image),
-  });
-  if (!response.ok) throw new Error('Failed to add image');
-  return response.json();
-};
-
-export const deleteImage = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/images/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete image');
-  return;
-};
-
-export const addPlaylist = async (playlist: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/playlists`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(playlist),
-  });
-  if (!response.ok) throw new Error('Failed to add playlist');
-  return response.json();
-};
-
-export const updatePlaylist = async (playlist: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/playlists/${playlist.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(playlist),
-  });
-  if (!response.ok) throw new Error('Failed to update playlist');
-  return;
-};
-
-export const deletePlaylist = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/playlists/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete playlist');
-  return;
-};
-
-export const getAdminCategories = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/categories`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch categories');
-  return response.json();
-};
-
-export const addCategory = async (category: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/categories`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(category),
-  });
-  if (!response.ok) throw new Error('Failed to add category');
-  return response.json();
-};
-
-export const updateCategory = async (category: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/categories/${category.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(category),
-  });
-  if (!response.ok) throw new Error('Failed to update category');
-  return response.json();
-};
-
-export const deleteCategory = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/categories/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete category');
-  return;
-};
-
-export const getAdminCreators = async () => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/creators`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to fetch creators');
-  return response.json();
-};
-
-export const addCreator = async (creator: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/creators`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(creator),
-  });
-  if (!response.ok) throw new Error('Failed to add creator');
-  return response.json();
-};
-
-export const updateCreator = async (creator: any) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/creators/${creator.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(creator),
-  });
-  if (!response.ok) throw new Error('Failed to update creator');
-  return response.json();
-};
-
-export const deleteCreator = async (id: number) => {
-  const token = getToken();
-  if (!token) throw new Error('Authentication token not found');
-  const response = await fetch(`${API_URL}/admin/creators/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error('Failed to delete creator');
-  return;
-};
+export const deleteVideo = async (id: number) => apiRequest(`/admin/videos/${id}`, { method: 'DELETE' });
+export const addShort = async (short: any) => apiRequest('/admin/shorts', { method: 'POST', body: JSON.stringify(short) });
+export const deleteShort = async (id: number) => apiRequest(`/admin/shorts/${id}`, { method: 'DELETE' });
+export const addImage = async (image: any) => apiRequest('/admin/images', { method: 'POST', body: JSON.stringify(image) });
+export const deleteImage = async (id: number) => apiRequest(`/admin/images/${id}`, { method: 'DELETE' });
+export const addPlaylist = async (playlist: any) => apiRequest('/admin/playlists', { method: 'POST', body: JSON.stringify(playlist) });
+export const updatePlaylist = async (playlist: any) => apiRequest(`/admin/playlists/${playlist.id}`, { method: 'PUT', body: JSON.stringify(playlist) });
+export const deletePlaylist = async (id: number) => apiRequest(`/admin/playlists/${id}`, { method: 'DELETE' });
+export const addCategory = async (category: any) => apiRequest('/admin/categories', { method: 'POST', body: JSON.stringify(category) });
+export const updateCategory = async (category: any) => apiRequest(`/admin/categories/${category.id}`, { method: 'PUT', body: JSON.stringify(category) });
+export const deleteCategory = async (id: number) => apiRequest(`/admin/categories/${id}`, { method: 'DELETE' });
+export const addCreator = async (creator: any) => apiRequest('/admin/creators', { method: 'POST', body: JSON.stringify(creator) });
+export const updateCreator = async (creator: any) => apiRequest(`/admin/creators/${creator.id}`, { method: 'PUT', body: JSON.stringify(creator) });
+export const deleteCreator = async (id: number) => apiRequest(`/admin/creators/${id}`, { method: 'DELETE' });
