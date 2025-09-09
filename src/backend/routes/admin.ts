@@ -60,7 +60,7 @@ router.get('/videos', async (req, res) => {
         const videos = await prisma.video.findMany({
             include: {
                 categories: {
-                    include: {
+                    select: {
                         category: true
                     }
                 }
@@ -69,7 +69,11 @@ router.get('/videos', async (req, res) => {
                 display_order: 'asc'
             }
         });
-        res.json(videos);
+         const videosWithCategoryIds = videos.map(video => ({
+            ...video,
+            categoryIds: video.categories.map(vc => vc.category.id)
+        }));
+        res.json(videosWithCategoryIds);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -86,7 +90,7 @@ router.post('/videos', async (req, res) => {
   try {
     const newVideo = await prisma.video.create({
         data: {
-            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, uploader_id: req.user.id, type,
+            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, uploader_id: req.user.id, type,
             categories: {
                 create: categoryIds.map(id => ({
                     category: {
@@ -120,7 +124,7 @@ router.put('/videos/:id', async (req, res) => {
       const updatedVideo = await tx.video.update({
         where: { id: parseInt(id) },
         data: {
-            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views, uploaded, type,
+            title, description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, type,
             categories: {
                 create: categoryIds.map(catId => ({
                     category: {
@@ -434,5 +438,3 @@ router.delete('/creators/:id', async (req, res) => {
 });
 
 export default router;
-
-    

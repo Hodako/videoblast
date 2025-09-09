@@ -31,7 +31,7 @@ export default function AdminVideosPage() {
     meta_data: { seo_title: '', seo_description: ''},
     subtitle: 'Admin Upload',
     duration: '0:00',
-    views: '0',
+    views: 0,
     uploaded: new Date().toISOString(),
     categoryIds: [],
     type: 'straight'
@@ -81,7 +81,7 @@ export default function AdminVideosPage() {
         meta_data: { seo_title: '', seo_description: ''},
         subtitle: 'Admin Upload',
         duration: '0:00',
-        views: '0',
+        views: 0,
         uploaded: new Date().toISOString(),
         categoryIds: [],
         type: 'straight'
@@ -234,7 +234,7 @@ export default function AdminVideosPage() {
               {videos.map((video: any) => (
                 <TableRow key={video.id}>
                   <TableCell className="font-medium">{video.title}</TableCell>
-                  <TableCell>{video.views}</TableCell>
+                  <TableCell>{video.views.toLocaleString()}</TableCell>
                   <TableCell>{format(new Date(video.uploaded), "PP")}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">
