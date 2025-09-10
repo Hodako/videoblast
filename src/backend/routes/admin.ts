@@ -51,7 +51,6 @@ router.get('/stats', async (req, res) => {
     res.json({
       totalVideos: videoCount.toString(),
       totalViews: totalViews.toLocaleString(),
-      newSubscribers: '+2500', // Example data
     });
   } catch (error) {
     console.error(error);

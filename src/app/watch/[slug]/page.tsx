@@ -18,6 +18,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import ReactPlayer from 'react-player';
 
 export default function WatchPage() {
   const params = useParams();
@@ -36,13 +37,13 @@ export default function WatchPage() {
   const [likes, setLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -59,12 +60,10 @@ export default function WatchPage() {
       const currentVideo = await getVideoBySlug(slug);
       if (currentVideo) {
         setVideo(currentVideo);
-        // Fetch comments and likes for this video
         const commentsData = await fetchComments(currentVideo.id);
         setComments(commentsData);
         const likesData = await getLikes(currentVideo.id);
         setLikes(likesData.count);
-
       } else {
         router.push('/404');
       }
@@ -85,6 +84,17 @@ export default function WatchPage() {
     loadData();
   }, [slug, loadData]);
 
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
+    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
+  };
+
+  const handleMouseLeave = () => {
+    if(isPlaying) {
+        setShowControls(false);
+    }
+  };
 
   const formatTime = (time: number) => {
     if (isNaN(time) || time === 0) return "0:00";
@@ -94,41 +104,24 @@ export default function WatchPage() {
   };
   
   const handlePlayPause = useCallback(() => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play().catch(() => setIsPlaying(false));
-      } else {
-        videoRef.current.pause();
-      }
-    }
-  }, []);
+    setIsPlaying(!isPlaying);
+  }, [isPlaying]);
 
   const handleVolumeChange = (value: number[]) => {
-    if (videoRef.current) {
       const newVolume = value[0];
-      videoRef.current.volume = newVolume;
       setVolume(newVolume);
-      videoRef.current.muted = newVolume === 0;
       setIsMuted(newVolume === 0);
-    }
   };
   
   const handleToggleMute = useCallback(() => {
-    if (videoRef.current) {
-        const newMuted = !videoRef.current.muted;
-        videoRef.current.muted = newMuted;
-        setIsMuted(newMuted);
-        if(!newMuted && videoRef.current.volume === 0) {
-           videoRef.current.volume = 1;
-           setVolume(1);
-        }
-    }
-  }, []);
+      setIsMuted(!isMuted);
+  }, [isMuted]);
 
   const handleProgressChange = (value: number[]) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = value[0];
-      setProgress(value[0]);
+    const newProgress = value[0];
+    if (playerRef.current) {
+      playerRef.current.seekTo(newProgress);
+      setProgress(newProgress);
     }
   };
 
@@ -144,15 +137,13 @@ export default function WatchPage() {
   }, []);
 
   const handlePlaybackRateChange = (rate: number) => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = rate;
-      setPlaybackRate(rate);
-    }
+    setPlaybackRate(rate);
   };
 
   const skipTime = (amount: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime += amount;
+    if (playerRef.current) {
+        const currentTime = playerRef.current.getCurrentTime();
+        playerRef.current.seekTo(currentTime + amount, 'seconds');
     }
   };
   
@@ -180,36 +171,6 @@ export default function WatchPage() {
   }
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onTimeUpdate = () => {
-      setProgress(videoElement.currentTime);
-      setCurrentTime(videoElement.currentTime);
-    };
-    const onDurationChange = () => {
-        if (videoElement.duration && isFinite(videoElement.duration)) {
-             setDuration(videoElement.duration);
-        }
-    };
-    const onWaiting = () => setIsBuffering(true);
-    const onPlaying = () => setIsBuffering(false);
-    const onCanPlay = () => {
-      setIsBuffering(false);
-      onDurationChange(); // Fire immediately on canplay
-    }
-    
-    videoElement.addEventListener('play', onPlay);
-    videoElement.addEventListener('pause', onPause);
-    videoElement.addEventListener('timeupdate', onTimeUpdate);
-    videoElement.addEventListener('durationchange', onDurationChange);
-    videoElement.addEventListener('loadedmetadata', onDurationChange);
-    videoElement.addEventListener('waiting', onWaiting);
-    videoElement.addEventListener('playing', onPlaying);
-    videoElement.addEventListener('canplay', onCanPlay);
-
     const onKeyDown = (e: KeyboardEvent) => {
         if (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement) return;
         e.preventDefault();
@@ -226,36 +187,11 @@ export default function WatchPage() {
     const onFullScreenChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', onFullScreenChange);
     
-    // Attempt to play on mount
-    videoElement.play().catch(() => {
-        setIsPlaying(false)
-    });
-
     return () => {
-      videoElement.removeEventListener('play', onPlay);
-      videoElement.removeEventListener('pause', onPause);
-      videoElement.removeEventListener('timeupdate', onTimeUpdate);
-      videoElement.removeEventListener('durationchange', onDurationChange);
-      videoElement.removeEventListener('loadedmetadata', onDurationChange);
-      videoElement.removeEventListener('waiting', onWaiting);
-      videoElement.removeEventListener('playing', onPlaying);
-      videoElement.removeEventListener('canplay', onCanPlay);
       window.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('fullscreenchange', onFullScreenChange);
     };
-  }, [video, handlePlayPause, handleToggleFullScreen, handleToggleMute]);
-
-  const handleMouseMove = () => {
-    setShowControls(true);
-    if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
-    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
-  };
-
-  const handleMouseLeave = () => {
-    if(isPlaying) {
-        setShowControls(false);
-    }
-  };
+  }, [handlePlayPause, handleToggleFullScreen, handleToggleMute]);
 
   if (isLoading) {
     return (
@@ -325,13 +261,25 @@ export default function WatchPage() {
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
             >
-              <video
-                ref={videoRef}
-                src={video.video_url}
-                className="w-full h-full"
-                onClick={handlePlayPause}
-                playsInline
-                crossOrigin="anonymous"
+              <ReactPlayer
+                ref={playerRef}
+                url={`/api/stream/${video.id}`}
+                playing={isPlaying}
+                volume={volume}
+                muted={isMuted}
+                playbackRate={playbackRate}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                onBuffer={() => setIsBuffering(true)}
+                onBufferEnd={() => setIsBuffering(false)}
+                onProgress={(state) => {
+                    setProgress(state.playedSeconds);
+                    setCurrentTime(state.playedSeconds);
+                }}
+                onDuration={setDuration}
+                width="100%"
+                height="100%"
+                className="react-player"
               />
               {isBuffering && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">

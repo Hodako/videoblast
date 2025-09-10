@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { DollarSign, Users, Video, Eye } from "lucide-react"
+import { Video, Eye } from "lucide-react"
 import { getAdminDashboardData } from "@/lib/data";
 
 const monthlyData = [
@@ -18,7 +18,6 @@ const monthlyData = [
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
-    newSubscribers: '0',
     totalVideos: '0',
     totalViews: '0'
   });
@@ -28,7 +27,6 @@ export default function DashboardPage() {
       try {
         const data = await getAdminDashboardData();
         setStats({
-          newSubscribers: data.newSubscribers || '+2350', // Example data
           totalVideos: data.totalVideos || '0',
           totalViews: data.totalViews || '0'
         });
@@ -42,17 +40,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.newSubscribers}</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Videos</CardTitle>
