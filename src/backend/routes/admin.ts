@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db';
@@ -54,7 +55,7 @@ router.get('/stats', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error fetching stats' });
   }
 });
 
@@ -82,7 +83,7 @@ router.get('/videos', async (req, res) => {
         res.json(videosWithCategoryIds);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching videos' });
     }
 });
 
@@ -103,7 +104,7 @@ router.post('/videos', async (req, res) => {
             categories: {
                 create: categoryIds.map(id => ({
                     category: {
-                        connect: { id }
+                        connect: { id: parseInt(id, 10) }
                     }
                 }))
             }
@@ -111,11 +112,11 @@ router.post('/videos', async (req, res) => {
     });
     res.status(201).json(newVideo);
   } catch (error) {
-      console.error(error);
+      console.error('Failed to create video:', error);
       if (error.code === 'P2002') { // Unique constraint violation
         return res.status(409).json({ message: 'A video with this title already exists. Please choose a unique title.'});
       }
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error creating video' });
   }
 });
 
@@ -128,22 +129,23 @@ router.put('/videos/:id', async (req, res) => {
   }
   
   try {
+    const videoId = parseInt(id, 10);
     await prisma.$transaction(async (tx) => {
       await tx.videoCategory.deleteMany({
-        where: { video_id: parseInt(id) }
+        where: { video_id: videoId }
       });
 
       const updatedVideo = await tx.video.update({
-        where: { id: parseInt(id) },
+        where: { id: videoId },
         data: {
             title, 
             slug: createSlug(title),
             description, video_url, thumbnail_url, tags, meta_data, subtitle, duration, views: parseInt(views, 10) || 0, uploaded, type,
-            creator_id: creator_id ? parseInt(creator_id, 10) : undefined,
+            creator_id: creator_id ? parseInt(creator_id, 10) : null,
             categories: {
                 create: categoryIds.map(catId => ({
                     category: {
-                        connect: { id: catId }
+                        connect: { id: parseInt(catId, 10) }
                     }
                 }))
             }
@@ -152,11 +154,11 @@ router.put('/videos/:id', async (req, res) => {
       res.json(updatedVideo);
     });
   } catch (error) {
-      console.error(error);
+      console.error('Failed to update video:', error);
       if (error.code === 'P2002') { // Unique constraint violation
         return res.status(409).json({ message: 'A video with this title already exists. Please choose a unique title.'});
       }
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error updating video' });
   }
 });
 
@@ -167,7 +169,7 @@ router.delete('/videos/:id', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error deleting video' });
   }
 });
 
@@ -185,7 +187,7 @@ router.put('/videos/reorder', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error reordering videos' });
   }
 });
 
@@ -197,7 +199,7 @@ router.get('/shorts', async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching shorts' });
     }
 });
 router.post('/shorts', async (req, res) => {
@@ -209,7 +211,7 @@ router.post('/shorts', async (req, res) => {
     res.status(201).json(newShort);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error creating short' });
   }
 });
 
@@ -220,7 +222,7 @@ router.delete('/shorts/:id', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error deleting short' });
   }
 });
 
@@ -231,7 +233,7 @@ router.get('/images', async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching images' });
     }
 });
 router.post('/images', async (req, res) => {
@@ -243,7 +245,7 @@ router.post('/images', async (req, res) => {
     res.status(201).json(newImage);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error creating image' });
   }
 });
 
@@ -254,7 +256,7 @@ router.delete('/images/:id', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error deleting image' });
   }
 });
 
@@ -274,7 +276,7 @@ router.get('/playlists', async (req, res) => {
         res.json(playlists);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching playlists' });
     }
 });
 
@@ -295,7 +297,7 @@ router.post('/playlists', async (req, res) => {
       res.status(201).json(newPlaylist);
   } catch (error) {
       console.error(error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error creating playlist' });
   }
 });
 
@@ -320,7 +322,7 @@ router.put('/playlists/:id', async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error updating playlist' });
     }
 });
 
@@ -331,7 +333,7 @@ router.delete('/playlists/:id', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error deleting playlist' });
   }
 });
 
@@ -346,7 +348,7 @@ router.get('/settings', async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error fetching settings' });
   }
 });
 
@@ -361,7 +363,7 @@ router.put('/settings', async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error updating settings' });
   }
 });
 
@@ -371,7 +373,7 @@ router.get('/categories', async (req, res) => {
         const categories = await prisma.category.findMany({ orderBy: { name: 'asc' }});
         res.json(categories);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching categories' });
     }
 });
 router.post('/categories', async (req, res) => {
@@ -383,7 +385,7 @@ router.post('/categories', async (req, res) => {
         const newCategory = await prisma.category.create({ data: { name } });
         res.status(201).json(newCategory);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error creating category' });
     }
 });
 router.put('/categories/:id', async (req, res) => {
@@ -396,7 +398,7 @@ router.put('/categories/:id', async (req, res) => {
         const updated = await prisma.category.update({ where: { id: parseInt(id) }, data: { name }});
         res.json(updated);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error updating category' });
     }
 });
 router.delete('/categories/:id', async (req, res) => {
@@ -405,7 +407,7 @@ router.delete('/categories/:id', async (req, res) => {
         await prisma.category.delete({ where: { id: parseInt(id) } });
         res.status(204).send();
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error deleting category' });
     }
 });
 
@@ -415,7 +417,7 @@ router.get('/creators', async (req, res) => {
         const creators = await prisma.creator.findMany({ orderBy: { name: 'asc' }});
         res.json(creators);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error fetching creators' });
     }
 });
 router.post('/creators', async (req, res) => {
@@ -427,7 +429,7 @@ router.post('/creators', async (req, res) => {
         const newCreator = await prisma.creator.create({ data: { name, image_url, description } });
         res.status(201).json(newCreator);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error creating creator' });
     }
 });
 router.put('/creators/:id', async (req, res) => {
@@ -440,7 +442,7 @@ router.put('/creators/:id', async (req, res) => {
         const updated = await prisma.creator.update({ where: { id: parseInt(id) }, data: { name, image_url, description }});
         res.json(updated);
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error updating creator' });
     }
 });
 router.delete('/creators/:id', async (req, res) => {
@@ -449,7 +451,7 @@ router.delete('/creators/:id', async (req, res) => {
         await prisma.creator.delete({ where: { id: parseInt(id) } });
         res.status(204).send();
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error deleting creator' });
     }
 });
 

@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
@@ -54,7 +55,6 @@ async function main() {
   const videos = [
     {
       title: 'Big Buck Bunny',
-      slug: createSlug('Big Buck Bunny'),
       description:
         'Big Buck Bunny tells the story of a giant rabbit with a heart bigger than himself. When one sunny day three rodents rudely harass him, something snaps... and the rabbit aint no bunny anymore! In the typical cartoon tradition he prepares the nasty rodents a comical revenge.\n\nLicensed under the Creative Commons Attribution license\nhttp://www.bigbuckbunny.org',
       video_url:
@@ -64,14 +64,12 @@ async function main() {
       duration: '10:34',
       views: 1200000,
       uploaded: new Date('2023-10-15T08:00:00Z'),
-      uploader_id: adminUser.id,
       creator_id: creator1.id,
       tags: ['cartoon', 'bunny', 'comedy'],
       type: 'straight'
     },
     {
       title: 'Elephants Dream',
-      slug: createSlug('Elephants Dream'),
       description: 'The first Blender Open Movie from 2006',
       video_url:
         'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
@@ -80,14 +78,12 @@ async function main() {
       duration: '12:41',
       views: 800000,
       uploaded: new Date('2023-09-20T12:00:00Z'),
-      uploader_id: adminUser.id,
       creator_id: creator1.id,
       tags: ['blender', 'open movie', 'animation'],
       type: 'gay',
     },
     { 
       title: 'For Bigger Blazes',
-      slug: createSlug('For Bigger Blazes'),
       description : "HBO GO now works with Chromecast -- the easiest way to enjoy online video on your TV. For when you want to settle into your Iron Throne to watch the latest episodes. For $35.\nLearn how to use Chromecast with HBO GO and more at google.com/chromecast.",
       video_url : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
       subtitle : "By Google",
@@ -95,7 +91,6 @@ async function main() {
       duration: '0:15',
       views: 500000,
       uploaded: new Date('2023-08-01T10:00:00Z'),
-      uploader_id: adminUser.id,
       creator_id: creator2.id,
       tags: ['google', 'chromecast', 'hbo'],
       type: 'straight'
@@ -104,9 +99,13 @@ async function main() {
 
   for (const video of videos) {
     await prisma.video.upsert({
-      where: { slug: video.slug },
+      where: { slug: createSlug(video.title) },
       update: {},
-      create: video,
+      create: {
+        ...video,
+        slug: createSlug(video.title),
+        uploader_id: adminUser.id,
+      },
     });
   }
    console.log('Seeded videos');

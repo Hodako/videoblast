@@ -1,3 +1,4 @@
+
 // src/app/admin/videos/page.tsx
 'use client'
 import { useEffect, useState } from "react";
@@ -62,7 +63,7 @@ export default function AdminVideosPage() {
   useEffect(() => {
     fetchVideos();
     fetchRelatedData();
-  }, []);
+  }, [toast]);
 
   const handleOpenDialog = (video = null) => {
     if (video) {
@@ -105,6 +106,7 @@ export default function AdminVideosPage() {
     const videoPayload = {
       ...currentVideo,
       tags: currentVideo.tags.split(',').map(tag => tag.trim()),
+      creator_id: currentVideo.creator_id ? parseInt(currentVideo.creator_id, 10) : null
     };
 
     try {
@@ -178,13 +180,13 @@ export default function AdminVideosPage() {
             </div>
              <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="creator_id" className="text-right">Creator/Channel</Label>
-              <Select value={currentVideo.creator_id} onValueChange={(value) => handleSelectChange('creator_id', value)}>
+              <Select value={currentVideo.creator_id?.toString() ?? ''} onValueChange={(value) => handleSelectChange('creator_id', value)}>
                 <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select creator" />
                 </SelectTrigger>
                 <SelectContent>
                     {creators.map((creator: any) => (
-                      <SelectItem key={creator.id} value={creator.id}>{creator.name}</SelectItem>
+                      <SelectItem key={creator.id} value={creator.id.toString()}>{creator.name}</SelectItem>
                     ))}
                 </SelectContent>
               </Select>
