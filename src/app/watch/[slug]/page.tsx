@@ -45,7 +45,6 @@ export default function WatchPage() {
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -123,16 +122,15 @@ export default function WatchPage() {
 
   const handleSeek = (value: number[]) => {
     const newTime = value[0];
+    setProgress(newTime); // Update slider position immediately
     if (playerRef.current) {
       playerRef.current.seekTo(newTime);
-      setCurrentTime(newTime);
     }
   };
   
   const handleProgress = (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => {
     if (!playerRef.current?.getDuration()) return;
     setProgress(state.playedSeconds);
-    setCurrentTime(state.playedSeconds);
   };
 
   const handleToggleFullScreen = useCallback(() => {
@@ -340,7 +338,7 @@ export default function WatchPage() {
                         </div>
                       )}
                       <div className="text-sm">
-                        {formatTime(currentTime)} / {formatTime(duration)}
+                        {formatTime(progress)} / {formatTime(duration)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
