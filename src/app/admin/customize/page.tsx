@@ -24,7 +24,7 @@ export default function CustomizePage() {
         enabled: true,
     },
     siteName: 'StreamVerse',
-    siteLogoUrl: '/logo-placeholder.svg',
+    siteLogoUrl: '/logo.svg', // Default logo
     siteMotto: 'Your universe of video content.',
     showFeatured: true,
     featuredVideoIds: []
@@ -44,14 +44,13 @@ export default function CustomizePage() {
         
         setAllVideos(allVideosData);
 
-        // A more robust way to merge settings
         if (siteSettings && typeof siteSettings === 'object' && Object.keys(siteSettings).length > 0) {
           setSettings(prev => ({
             ...prev,
             ...siteSettings,
             theme: { ...prev.theme, ...siteSettings.theme },
             banner: { ...prev.banner, ...siteSettings.banner },
-            featuredVideoIds: siteSettings.featuredVideoIds || []
+            featuredVideoIds: siteSettings.featuredVideoIds || [],
           }));
         }
       } catch (error) {
@@ -181,7 +180,7 @@ export default function CustomizePage() {
             <CardHeader>
                 <CardTitle>Landing Page Videos</CardTitle>
                 <CardDescription>Choose which videos to feature on the homepage.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
                  <div className="flex items-center space-x-2 mb-4">
                     <Switch 

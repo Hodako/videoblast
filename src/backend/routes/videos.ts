@@ -25,7 +25,7 @@ const checkAuth = (req, res, next) => {
 router.get('/', async (req, res) => {
   const { type, category, tag, sortBy } = req.query;
   const where: any = {};
-  let orderBy: any = { display_order: 'asc' };
+  let orderBy: any = { uploaded: 'desc' }; // Default to recent
   
   if (type) {
       const types = Array.isArray(type) ? type : [type];
@@ -33,24 +33,26 @@ router.get('/', async (req, res) => {
         where.type = { in: types };
       }
   }
+  // When category is a slug
   if (category) {
-      where.categories = { some: { category_id: parseInt(category as string) } };
+      where.categories = { some: { category: { name: { equals: (category as string).replace(/-/g, ' '), mode: 'insensitive' } } } };
   }
   if (tag) {
       where.tags = { has: tag as string };
   }
 
-  if (sortBy === 'recent') {
-      orderBy = { uploaded: 'desc' };
-  } else if (sortBy === 'popular') {
+  if (sortBy === 'popular') {
       orderBy = { views: 'desc' };
+  } else if (sortBy === 'relevance' && !tag && !category) {
+     orderBy = { display_order: 'asc' }; // Your custom relevance
   }
 
   try {
     const videos = await prisma.video.findMany({
       where,
       include: {
-        creator: true
+        creator: true,
+        categories: { include: { category: true }}
       },
       orderBy,
     });

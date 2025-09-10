@@ -9,8 +9,9 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
-export default function Header() {
+export default function Header({ settings }) {
   const router = useRouter();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [user, setUser] = useState<{firstName?: string, email?: string, role?: string} | null>(null);
@@ -29,7 +30,7 @@ export default function Header() {
     if (query) {
       router.push(`/search?q=${encodeURIComponent(query)}`);
     }
-    setIsMobileSearchOpen(false); // Close search on submit
+    setIsMobileSearchOpen(false);
   };
   
   const handleLogout = () => {
@@ -61,12 +62,6 @@ export default function Header() {
 
   const navLinks = (
     <>
-      <form onSubmit={handleSearch} className="relative w-full lg:hidden mb-4">
-        <Input name="search" placeholder="Search..." className="bg-muted pr-10" />
-        <Button type="submit" variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 text-muted-foreground">
-          <Search className="w-4 h-4" />
-        </Button>
-      </form>
       <Link href="/videos" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
       <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2">
         <Film className="w-5 h-5" /> Shorts
@@ -79,10 +74,13 @@ export default function Header() {
   );
 
   return (
-    <header className="bg-card px-4 sm:px-5 h-[60px] flex items-center justify-between border-b border-border gap-4">
+    <header className="sticky top-0 z-50 bg-card px-4 sm:px-5 h-[60px] flex items-center justify-between border-b border-border gap-4">
        <div className={cn("flex items-center gap-8", { 'hidden': isMobileSearchOpen })}>
-         <Link href="/" className="text-2xl font-bold text-primary">
-          StreamVerse
+         <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
+          {settings?.siteLogoUrl ? (
+            <Image src={settings.siteLogoUrl} alt={settings.siteName || 'Logo'} width={32} height={32} />
+          ) : null}
+          {settings?.siteName || 'StreamVerse'}
         </Link>
         <nav className="hidden lg:flex gap-8 list-none">
           {navLinks}

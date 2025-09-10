@@ -85,6 +85,10 @@ export async function getCategories() {
   return apiRequest('/categories');
 }
 
+export async function getCategoryBySlug(slug: string) {
+  return apiRequest(`/categories/by-slug/${slug}`);
+}
+
 export async function getCreators() {
   return apiRequest('/creators');
 }
@@ -104,7 +108,7 @@ export const getSiteSettings = async () => {
           theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
           banner: { text: "Welcome!", color: '#2ed573', enabled: false },
           siteName: 'StreamVerse',
-          siteLogoUrl: '/logo-placeholder.svg',
+          siteLogoUrl: '/logo.svg',
           siteMotto: 'Your universe of video content.',
           showFeatured: true,
           featuredVideoIds: []

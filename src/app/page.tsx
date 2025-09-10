@@ -13,12 +13,15 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getVideos, getShorts, getSiteSettings, getCategories } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const { y } = useWindowScroll();
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const [lastY, setLastY] = useState(0);
   const isMobile = useIsMobile();
+  const router = useRouter();
+  
   const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -62,7 +65,7 @@ export default function Home() {
         const tags = videosData.reduce((acc, video) => {
             if(video.tags) {
                 video.tags.forEach(tag => {
-                    if (!acc.includes(tag)) {
+                    if (tag && !acc.includes(tag)) {
                         acc.push(tag);
                     }
                 });
@@ -82,7 +85,6 @@ export default function Home() {
       }
     };
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilterChange = (newFilters) => {
@@ -91,9 +93,18 @@ export default function Home() {
     fetchFilteredVideos(updatedFilters);
   };
   
+  const handleCategoryClick = (category) => {
+      if (category) {
+        const slug = category.name.toLowerCase().replace(/ /g, '-');
+        router.push(`/categories/${slug}`);
+      } else {
+        fetchFilteredVideos({ category: null, tag: null });
+      }
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <Header settings={siteSettings} />
       <PromoBanner settings={siteSettings}/>
       <div className="flex flex-col md:flex-row">
         <aside className="w-full shrink-0 md:w-[250px] md:sticky md:top-[60px] md:h-[calc(100vh-60px)] overflow-y-auto bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
@@ -137,7 +148,7 @@ export default function Home() {
               videos={allVideos} 
               shorts={shorts} 
               categories={categories}
-              onCategoryChange={(catId) => handleFilterChange({category: catId, tag: null})}
+              onCategoryChange={handleCategoryClick}
               siteSettings={siteSettings}
             />
           )}

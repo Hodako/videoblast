@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tag } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getCategories } from '@/lib/data';
+import Link from 'next/link';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -20,6 +21,8 @@ export default function CategoriesPage() {
     };
     fetchCategories();
   }, []);
+  
+  const createSlug = (name) => name.toLowerCase().replace(/ /g, '-');
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -28,12 +31,14 @@ export default function CategoriesPage() {
         <h1 className="text-3xl font-bold mb-8">Categories</h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {categories.map((category: any) => (
-            <Card key={category.id} className="bg-card hover:bg-muted transition-colors cursor-pointer">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <Tag className="w-10 h-10 text-primary mb-3" />
-                <p className="font-semibold">{category.name}</p>
-              </CardContent>
-            </Card>
+            <Link key={category.id} href={`/categories/${createSlug(category.name)}`}>
+              <Card className="bg-card hover:bg-muted transition-colors cursor-pointer aspect-square flex flex-col items-center justify-center">
+                <CardContent className="p-4 flex flex-col items-center justify-center text-center">
+                  <Tag className="w-10 h-10 text-primary mb-3" />
+                  <p className="font-semibold">{category.name}</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </main>
