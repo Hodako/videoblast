@@ -90,6 +90,9 @@ router.get('/by-slug/:slug', async (req, res) => {
 
 router.get('/search', async (req, res) => {
   const { q } = req.query;
+  if (!q) {
+    return res.json({ videos: [], shorts: []});
+  }
   try {
     const videos = await prisma.video.findMany({
       where: {
@@ -103,7 +106,16 @@ router.get('/search', async (req, res) => {
         creator: true
       }
     });
-    res.json(videos);
+
+    const shorts = await prisma.short.findMany({
+      where: {
+         title: { contains: q as string, mode: 'insensitive' }
+      },
+      include: {
+        creator: true
+      }
+    })
+    res.json({ videos, shorts });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

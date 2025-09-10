@@ -62,6 +62,11 @@ export async function getVideos(filters: { types?: string[], category?: string, 
   return apiRequest(`/videos?${params.toString()}`);
 }
 
+export async function searchContent(query: string) {
+    const params = new URLSearchParams({ q: query });
+    return apiRequest(`/videos/search?${params.toString()}`);
+}
+
 export async function getShorts() {
   return apiRequest('/shorts');
 }

@@ -6,21 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { getVideos, reorderVideos, getSiteSettings, updateSiteSettings } from "@/lib/data"
-import { GripVertical } from "lucide-react"
+import { getVideos, getSiteSettings, updateSiteSettings } from "@/lib/data"
 import { useToast } from "@/hooks/use-toast"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export default function CustomizePage() {
   const { toast } = useToast();
-  const [videos, setVideos] = useState([]);
   const [allVideos, setAllVideos] = useState([]);
   const [settings, setSettings] = useState({
     theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
-    bannerText: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
+    banner: {
+        text: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
+        color: '#2ed573',
+        enabled: true,
+    },
     siteName: 'StreamVerse',
-    siteLogoUrl: '/logo-placeholder.svg', // Default placeholder
+    siteLogoUrl: '/logo-placeholder.svg',
+    siteMotto: 'Your universe of video content.',
     showFeatured: true,
     featuredVideoIds: []
   });
@@ -28,13 +31,11 @@ export default function CustomizePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [videosData, siteSettings, allVideosData] = await Promise.all([
-            getVideos(),
+        const [siteSettings, allVideosData] = await Promise.all([
             getSiteSettings(),
             getVideos()
         ]);
         
-        setVideos(videosData);
         setAllVideos(allVideosData);
 
         if (siteSettings && Object.keys(siteSettings).length > 0) {
@@ -42,6 +43,7 @@ export default function CustomizePage() {
             ...prev,
             ...siteSettings,
             theme: siteSettings.theme || prev.theme,
+            banner: siteSettings.banner || prev.banner,
             featuredVideoIds: siteSettings.featuredVideoIds || []
           }));
         }
@@ -70,6 +72,10 @@ export default function CustomizePage() {
      setSettings(prev => ({ ...prev, theme: { ...prev.theme, [key]: value } }));
   }
 
+  const handleBannerChange = (key, value) => {
+     setSettings(prev => ({ ...prev, banner: { ...prev.banner, [key]: value } }));
+  }
+
   const handleFeaturedVideoChange = (videoId, checked) => {
     setSettings(prev => {
         const newFeaturedIds = checked
@@ -86,17 +92,21 @@ export default function CustomizePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Site Identity</CardTitle>
-            <CardDescription>Manage your website's name and logo.</CardDescription>
+            <CardTitle>Site Identity & SEO</CardTitle>
+            <CardDescription>Manage your website's name, logo, and motto for search engines.</CardDescription>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="site-name">Site Name</Label>
+              <Label htmlFor="site-name">Site Name (Title)</Label>
               <Input id="site-name" value={settings.siteName} onChange={(e) => handleInputChange('siteName', e.target.value)} />
             </div>
              <div className="space-y-2">
               <Label htmlFor="site-logo-url">Site Logo URL</Label>
               <Input id="site-logo-url" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', e.target.value)} />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="site-motto">Site Motto (Meta Description)</Label>
+              <Textarea id="site-motto" value={settings.siteMotto} onChange={(e) => handleInputChange('siteMotto', e.target.value)} />
             </div>
           </CardContent>
         </Card>
@@ -134,10 +144,28 @@ export default function CustomizePage() {
         <Card>
           <CardHeader>
             <CardTitle>Promotional Banner</CardTitle>
-            <CardDescription>Edit the text displayed in the top promotional banner.</CardDescription>
+            <CardDescription>Edit the text and appearance of the top promotional banner.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea value={settings.bannerText} onChange={(e) => handleInputChange('bannerText', e.target.value)} />
+             <div className="flex items-center space-x-2">
+                <Switch 
+                    id="banner-enabled" 
+                    checked={settings.banner.enabled} 
+                    onCheckedChange={(checked) => handleBannerChange('enabled', checked)}
+                />
+                <Label htmlFor="banner-enabled">Show promotional banner</Label>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="banner-text">Banner Text</Label>
+                <Textarea id="banner-text" value={settings.banner.text} onChange={(e) => handleBannerChange('text', e.target.value)} disabled={!settings.banner.enabled} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="banner-color">Banner Color</Label>
+              <div className="flex items-center gap-2">
+                <Input type="color" id="banner-color" value={settings.banner.color} onChange={(e) => handleBannerChange('color', e.target.value)} className="w-12 h-10 p-1" disabled={!settings.banner.enabled}/>
+                <Input type="text" value={settings.banner.color} onChange={(e) => handleBannerChange('color', e.target.value)} disabled={!settings.banner.enabled} />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -162,6 +190,7 @@ export default function CustomizePage() {
                                 id={`video-${video.id}`}
                                 checked={settings.featuredVideoIds.includes(video.id)}
                                 onCheckedChange={(checked) => handleFeaturedVideoChange(video.id, checked)}
+                                disabled={!settings.showFeatured}
                             />
                             <Label htmlFor={`video-${video.id}`}>{video.title}</Label>
                         </div>
