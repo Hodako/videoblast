@@ -115,7 +115,7 @@ async function main() {
       type: 'gay',
       categoryIds: [animCat.id]
     },
-    { 
+    {
       title: 'For Bigger Blazes',
       description : "HBO GO now works with Chromecast -- the easiest way to enjoy online video on your TV. For when you want to settle into your Iron Throne to watch the latest episodes. For $35.\nLearn how to use Chromecast with HBO GO and more at google.com/chromecast.",
       video_url : "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
@@ -172,7 +172,10 @@ async function main() {
     await prisma.short.upsert({
       where: { title: short.title },
       update: {},
-      create: short,
+      create: {
+        ...short,
+        slug: createSlug(short.title),
+      },
     });
   }
   console.log('Seeded shorts');
