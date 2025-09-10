@@ -2,14 +2,15 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Settings, Video, Film, ImageIcon, BarChart2, List, User, Tag, Sparkles } from 'lucide-react';
+import { Home, Settings, Video, Film, ImageIcon, BarChart2, List, User, Tag, Sparkles, MoveVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Header from '@/components/header';
 import { useEffect, useState } from 'react';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: BarChart2 },
-  { href: '/admin/videos', label: 'Videos', icon: Video },
+  { href: '/admin/videos', label: 'Videos', icon: Video, exact: true },
+  { href: '/admin/videos/reorder', label: 'Reorder Videos', icon: MoveVertical },
   { href: '/admin/shorts', label: 'Shorts', icon: Film },
   { href: '/admin/images', label: 'Images', icon: ImageIcon },
   { href: '/admin/playlists', label: 'Playlists', icon: List },
@@ -60,13 +61,18 @@ export default function AdminLayout({
               <Home className="w-4 h-4" />
               Back to Site
             </Link>
-            {adminNavItems.map((item) => (
+            {adminNavItems.map((item) => {
+              const isActive = item.exact 
+                ? pathname === item.href 
+                : pathname.startsWith(item.href);
+                
+              return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  pathname.startsWith(item.href)
+                   isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
@@ -74,7 +80,7 @@ export default function AdminLayout({
                 <item.icon className="h-5 w-5" />
                 {item.label}
               </Link>
-            ))}
+            )})}
           </nav>
         </aside>
         <main className="flex-1 p-8">{children}</main>

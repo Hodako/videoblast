@@ -173,6 +173,7 @@ export const updateVideo = async (video: any) => apiRequest(`/admin/videos/${vid
 
 export const deleteVideo = async (id: number) => apiRequest(`/admin/videos/${id}`, { method: 'DELETE' });
 export const addShort = async (short: any) => apiRequest('/admin/shorts', { method: 'POST', body: JSON.stringify(short) });
+export const updateShort = async (short: any) => apiRequest(`/admin/shorts/${short.id}`, { method: 'PUT', body: JSON.stringify(short) });
 export const deleteShort = async (id: number) => apiRequest(`/admin/shorts/${id}`, { method: 'DELETE' });
 export const addImage = async (image: any) => apiRequest('/admin/images', { method: 'POST', body: JSON.stringify(image) });
 export const deleteImage = async (id: number) => apiRequest(`/admin/images/${id}`, { method: 'DELETE' });

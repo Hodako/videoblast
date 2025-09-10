@@ -1,5 +1,3 @@
-
-
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db';
@@ -10,6 +8,7 @@ dotenv.config();
 const router = Router();
 
 function createSlug(title: string) {
+  if (!title) return '';
   return title
     .toLowerCase()
     .replace(/ /g, '-')
@@ -42,16 +41,15 @@ router.use(adminAuth);
 router.get('/stats', async (req, res) => {
   try {
     const videoCount = await prisma.video.count();
-    const totalViewsResult = await prisma.video.aggregate({
-        _sum: {
-            views: true,
-        },
-    });
-    
+    const shortCount = await prisma.short.count();
+    const creatorCount = await prisma.creator.count();
+    const totalViewsResult = await prisma.video.aggregate({ _sum: { views: true } });
     const totalViews = totalViewsResult._sum.views || 0;
     
     res.json({
       totalVideos: videoCount.toString(),
+      totalShorts: shortCount.toString(),
+      totalCreators: creatorCount.toString(),
       totalViews: totalViews.toLocaleString(),
     });
   } catch (error) {
@@ -74,7 +72,7 @@ router.get('/videos', async (req, res) => {
                 creator: true,
             },
             orderBy: {
-                uploaded: 'desc'
+                display_order: 'asc'
             }
         });
          const videosWithCategoryIds = videos.map(video => ({
@@ -175,7 +173,7 @@ router.delete('/videos/:id', async (req, res) => {
 });
 
 router.put('/videos/reorder', async (req, res) => {
-  const videos = req.body;
+  const videos = req.body; // Expects an array of { id: number, order: number }
   try {
     await prisma.$transaction(
       videos.map(video => 
@@ -185,9 +183,9 @@ router.put('/videos/reorder', async (req, res) => {
         })
       )
     );
-    res.status(204).send();
+    res.status(200).json({ message: "Video order updated successfully."});
   } catch (error) {
-    console.error(error);
+    console.error('Failed to reorder videos:', error);
     res.status(500).json({ message: 'Server error reordering videos' });
   }
 });
@@ -209,7 +207,14 @@ router.post('/shorts', async (req, res) => {
   const { title, video_url, thumbnail_url, views, creator_id } = req.body;
   try {
     const newShort = await prisma.short.create({
-      data: { title, video_url, thumbnail_url, views: views || '0', creator_id }
+      data: { 
+          title,
+          slug: createSlug(title),
+          video_url, 
+          thumbnail_url, 
+          views: views || '0', 
+          creator_id: creator_id ? parseInt(creator_id, 10) : null
+      }
     });
     res.status(201).json(newShort);
   } catch (error) {
@@ -218,6 +223,30 @@ router.post('/shorts', async (req, res) => {
         return res.status(409).json({ message: 'A short with this title already exists.'});
     }
     res.status(500).json({ message: 'Server error creating short' });
+  }
+});
+
+router.put('/shorts/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, video_url, thumbnail_url, creator_id } = req.body;
+  try {
+    const updatedShort = await prisma.short.update({
+      where: { id: parseInt(id, 10) },
+      data: {
+        title,
+        slug: createSlug(title),
+        video_url,
+        thumbnail_url,
+        creator_id: creator_id ? parseInt(creator_id, 10) : null
+      }
+    });
+    res.status(200).json(updatedShort);
+  } catch (error) {
+    console.error(error);
+    if (error.code === 'P2002') {
+        return res.status(409).json({ message: 'A short with this title already exists.'});
+    }
+    res.status(500).json({ message: 'Server error updating short' });
   }
 });
 

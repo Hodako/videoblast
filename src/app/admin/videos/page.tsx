@@ -1,5 +1,3 @@
-
-
 // src/app/admin/videos/page.tsx
 'use client'
 import { useEffect, useState } from "react";
@@ -16,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
+import Image from "next/image";
 
 export default function AdminVideosPage() {
   const { toast } = useToast();
@@ -107,7 +106,7 @@ export default function AdminVideosPage() {
     const videoPayload = {
       ...currentVideo,
       views: Number(currentVideo.views) || 0,
-      tags: currentVideo.tags.split(',').map(tag => tag.trim()),
+      tags: currentVideo.tags.split(',').map(tag => tag.trim()).filter(t => t), // Filter empty tags
       creator_id: currentVideo.creator_id ? parseInt(currentVideo.creator_id, 10) : null
     };
 
@@ -251,6 +250,7 @@ export default function AdminVideosPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[80px]">Thumbnail</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Creator</TableHead>
                 <TableHead>Views</TableHead>
@@ -261,6 +261,9 @@ export default function AdminVideosPage() {
             <TableBody>
               {videos.map((video: any) => (
                 <TableRow key={video.id}>
+                  <TableCell>
+                    {video.thumbnail_url && <Image src={video.thumbnail_url} alt={video.title} width={64} height={36} className="rounded-sm object-cover" />}
+                  </TableCell>
                   <TableCell className="font-medium">{video.title}</TableCell>
                   <TableCell>{video.creator?.name || 'N/A'}</TableCell>
                   <TableCell>{video.views.toLocaleString()}</TableCell>
