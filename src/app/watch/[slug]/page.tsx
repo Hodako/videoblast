@@ -1,9 +1,7 @@
-
 // src/app/watch/[slug]/page.tsx
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import Head from 'next/head';
 import Header from '@/components/header';
 import { getVideoBySlug, getComments as fetchComments, postComment, getVideos, getLikes, likeVideo, unlikeVideo } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +18,46 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import ReactPlayer from 'react-player';
+
+// export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+//   const video = await getVideoBySlug(params.slug);
+//   if (!video) {
+//     return {
+//       title: 'Video Not Found',
+//       description: 'This video could not be found.',
+//     };
+//   }
+
+//   const seoTitle = video.meta_data?.seo_title || video.title;
+//   const seoDescription = video.meta_data?.seo_description || video.description.substring(0, 160);
+//   const imageUrl = video.thumbnail_url || (process.env.NEXT_PUBLIC_BASE_URL + '/logo.svg');
+  
+//   return {
+//     title: seoTitle,
+//     description: seoDescription,
+//     openGraph: {
+//       title: seoTitle,
+//       description: seoDescription,
+//       url: `${process.env.NEXT_PUBLIC_BASE_URL}/watch/${video.slug}`,
+//       images: [
+//         {
+//           url: imageUrl,
+//           width: 1280,
+//           height: 720,
+//           alt: seoTitle,
+//         },
+//       ],
+//       type: 'video.other',
+//     },
+//     twitter: {
+//       card: 'summary_large_image',
+//       title: seoTitle,
+//       description: seoDescription,
+//       images: [imageUrl],
+//     },
+//   };
+// }
+
 
 export default function WatchPage() {
   const params = useParams();
@@ -309,16 +347,9 @@ export default function WatchPage() {
   if (!video) {
     return null; // or a custom 404 component, handled by redirect
   }
-
-  const seoTitle = video.meta_data?.seo_title || video.title;
-  const seoDescription = video.meta_data?.seo_description || video.description;
-
+  
   return (
     <>
-      <Head>
-        <title>{seoTitle}</title>
-        <meta name="description" content={seoDescription} />
-      </Head>
       <div className="min-h-screen bg-background text-foreground">
         <Header />
         <div className="flex flex-col lg:flex-row p-5 gap-5">

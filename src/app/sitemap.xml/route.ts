@@ -4,6 +4,8 @@ import { getVideos, getShorts, getCategories } from '@/lib/data';
 const URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 function generateSitemap(videos, shorts, categories) {
+  const createSlug = (name) => name.toLowerCase().replace(/ /g, '-');
+  
   return `<?xml version="1.0" encoding="UTF-8"?>
    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
      <!-- Static pages -->
@@ -38,20 +40,19 @@ function generateSitemap(videos, shorts, categories) {
        })
        .join('')}
     ${shorts
-       .map(({ id }) => {
+       .map(({ slug }) => {
          return `
            <url>
-               <loc>${`${URL}/shorts/${id}`}</loc>
+               <loc>${`${URL}/shorts/${slug}`}</loc>
            </url>
          `;
        })
        .join('')}
     ${categories
        .map(({ name }) => {
-         // Assuming you have a route for /categories/[name]
          return `
            <url>
-               <loc>${`${URL}/categories?category=${name.toLowerCase()}`}</loc>
+               <loc>${`${URL}/categories/${createSlug(name)}`}</loc>
            </url>
          `;
        })
