@@ -180,7 +180,7 @@ export default function CustomizePage() {
             <CardHeader>
                 <CardTitle>Landing Page Videos</CardTitle>
                 <CardDescription>Choose which videos to feature on the homepage.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
                  <div className="flex items-center space-x-2 mb-4">
                     <Switch 
