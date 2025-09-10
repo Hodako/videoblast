@@ -77,6 +77,10 @@ export async function getShorts() {
   return apiRequest('/shorts');
 }
 
+export async function getShortBySlug(slug: string) {
+  return apiRequest(`/shorts/by-slug/${slug}`);
+}
+
 export const getComments = async (videoId: number) => {
   return apiRequest(`/videos/${videoId}/comments`);
 };

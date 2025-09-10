@@ -8,13 +8,13 @@ type ShortsCardProps = {
     title: string;
     views: string;
     thumbnail_url: string;
+    slug: string;
   };
-  index: number;
 };
 
-export default function ShortsCard({ short, index }: ShortsCardProps) {
+export default function ShortsCard({ short }: ShortsCardProps) {
   return (
-    <Link href={`/shorts/${index}`}>
+    <Link href={`/shorts/${short.slug}`}>
     <Card className="w-full overflow-hidden rounded-lg bg-card border-none aspect-[9/16] relative cursor-pointer transition-transform hover:scale-105 group">
       <Image
         src={short.thumbnail_url}

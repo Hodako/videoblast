@@ -59,21 +59,45 @@ export default function WatchPage() {
     if (!slug) return;
     setIsLoading(true);
     try {
-      const [currentVideo, allVideos] = await Promise.all([
-        getVideoBySlug(slug),
-        getVideos()
-      ]);
+      const currentVideo = await getVideoBySlug(slug);
 
       if (currentVideo) {
         setVideo(currentVideo);
-        const [commentsData, likesData] = await Promise.all([
+        const [commentsData, likesData, allVideos] = await Promise.all([
             fetchComments(currentVideo.id),
             getLikes(currentVideo.id),
+            getVideos()
         ]);
         setComments(commentsData);
         setLikeCount(likesData.count);
         setIsLiked(likesData.isLiked);
-        setRecommendedVideos(allVideos.filter(v => v.id !== currentVideo.id));
+        
+        // Suggestion algorithm
+        const suggestions = allVideos
+            .filter(v => v.id !== currentVideo.id)
+            .sort((a, b) => {
+                let scoreA = 0;
+                let scoreB = 0;
+                
+                // Priority 1: Same creator
+                if(a.creator_id === currentVideo.creator_id) scoreA += 5;
+                if(b.creator_id === currentVideo.creator_id) scoreB += 5;
+
+                // Priority 2: Shared categories
+                const currentVideoCategoryIds = currentVideo.categories.map(c => c.category_id);
+                a.categories?.forEach(cat => { if(currentVideoCategoryIds.includes(cat.category_id)) scoreA += 2 });
+                b.categories?.forEach(cat => { if(currentVideoCategoryIds.includes(cat.category_id)) scoreB += 2 });
+
+                // Priority 3: Shared tags
+                a.tags?.forEach(tag => { if(currentVideo.tags.includes(tag)) scoreA += 1 });
+                b.tags?.forEach(tag => { if(currentVideo.tags.includes(tag)) scoreB += 1 });
+
+                return scoreB - scoreA;
+            })
+            .slice(0, 10);
+            
+        setRecommendedVideos(suggestions);
+
       } else {
         router.push('/not-found');
       }

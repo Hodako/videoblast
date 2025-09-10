@@ -156,7 +156,7 @@ export default function Home() {
       </div>
 
        {isMobile && (
-         <Link href="/shorts/0" passHref>
+         <Link href={`/shorts/${shorts[0]?.slug || '0'}`} passHref>
           <Button
             className={cn(
               "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-full shadow-lg transition-transform transform",

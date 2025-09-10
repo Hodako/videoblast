@@ -8,13 +8,16 @@ export default function MainContent({ videos, shorts, categories, onCategoryChan
   const featuredVideoIds = siteSettings?.featuredVideoIds ?? [];
 
   const popularVideos = [...videos].sort((a, b) => b.views - a.views);
+  const recentVideos = [...videos].sort((a, b) => new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime());
 
   const featuredVideos = showFeatured && featuredVideoIds.length > 0 
     ? videos.filter(v => featuredVideoIds.includes(v.id))
     : [];
-
+  
+  // If featured videos are on, the remaining videos should not include them.
+  // Otherwise, if featured videos are off, show all videos sorted by popularity.
   const remainingVideos = (showFeatured && featuredVideoIds.length > 0)
-    ? videos.filter(v => !featuredVideoIds.includes(v.id))
+    ? popularVideos.filter(v => !featuredVideoIds.includes(v.id))
     : popularVideos;
 
 
@@ -40,16 +43,30 @@ export default function MainContent({ videos, shorts, categories, onCategoryChan
       
       <div className="space-y-10">
         {featuredVideos.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-            {renderVideoGrid(featuredVideos)}
-          </div>
+            <div>
+                 <h2 className="text-xl font-bold mb-4">Featured Videos</h2>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                    {renderVideoGrid(featuredVideos)}
+                </div>
+            </div>
         )}
 
         {shorts.length > 0 && <ShortsCarousel shorts={shorts} />}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-           {renderVideoGrid(remainingVideos)}
+        
+        <div>
+            <h2 className="text-xl font-bold mb-4">Popular Videos</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                {renderVideoGrid(remainingVideos)}
+            </div>
         </div>
+
+        <div>
+            <h2 className="text-xl font-bold mb-4">Recent Videos</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+                {renderVideoGrid(recentVideos)}
+            </div>
+        </div>
+
       </div>
     </div>
   );

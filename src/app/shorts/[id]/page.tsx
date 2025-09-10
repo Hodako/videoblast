@@ -1,8 +1,8 @@
 // src/app/shorts/[id]/page.tsx
 'use client';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { getShorts } from '@/lib/data';
+import { getShorts, getShortBySlug } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, ChevronUp, ChevronDown, X } from 'lucide-react';
@@ -12,40 +12,51 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ShortsPage() {
   const params = useParams();
   const router = useRouter();
-  const id = params.id ? parseInt(params.id as string, 10) : 0;
+  const pathname = usePathname();
+
+  const slug = params.id as string;
   
   const [shorts, setShorts] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(id);
+  const [currentShort, setCurrentShort] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const fetchShorts = async () => {
-      setIsLoading(true);
+    const fetchAllShorts = async () => {
       const shortsData = await getShorts();
       setShorts(shortsData);
-      setIsLoading(false);
     };
-    fetchShorts();
+    fetchAllShorts();
   }, []);
 
-  const currentShort = shorts[currentIndex];
+  useEffect(() => {
+      if (shorts.length > 0) {
+          const initialIndex = shorts.findIndex(s => s.slug === slug);
+          if (initialIndex !== -1) {
+              setCurrentShort(shorts[initialIndex]);
+              setCurrentIndex(initialIndex);
+              setIsLoading(false);
+          } else {
+              // Handle case where slug is not found, maybe redirect to first short
+              if (shorts[0]?.slug) {
+                router.replace(`/shorts/${shorts[0].slug}`);
+              }
+          }
+      }
+  }, [slug, shorts, router]);
 
   const goToNextShort = () => {
-    if (shorts.length === 0) return;
+    if (shorts.length === 0 || currentIndex === -1) return;
     const nextIndex = (currentIndex + 1) % shorts.length;
-    router.push(`/shorts/${nextIndex}`, { scroll: false });
+    router.push(`/shorts/${shorts[nextIndex].slug}`, { scroll: false });
   };
 
   const goToPrevShort = () => {
-    if (shorts.length === 0) return;
+    if (shorts.length === 0 || currentIndex === -1) return;
     const prevIndex = (currentIndex - 1 + shorts.length) % shorts.length;
-    router.push(`/shorts/${prevIndex}`, { scroll: false });
+    router.push(`/shorts/${shorts[prevIndex].slug}`, { scroll: false });
   };
-
-  useEffect(() => {
-    setCurrentIndex(id);
-  }, [id]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -66,7 +77,7 @@ export default function ShortsPage() {
         window.removeEventListener('keydown', handleKeyDown);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, shorts.length]);
+  }, [pathname, shorts.length]);
   
   if (isLoading || !currentShort) {
     return (
