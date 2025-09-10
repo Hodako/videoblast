@@ -51,7 +51,7 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 
 // --- Public Data Fetching Functions ---
 
-export async function getVideos(filters: { types?: string[], category?: string, tag?: string } = {}) {
+export async function getVideos(filters: { types?: string[], category?: string, tag?: string, sortBy?: string } = {}) {
   const params = new URLSearchParams();
   if (filters.types && filters.types.length > 0) {
     filters.types.forEach(type => params.append('type', type));
@@ -61,6 +61,9 @@ export async function getVideos(filters: { types?: string[], category?: string, 
   }
   if (filters.tag) {
     params.append('tag', filters.tag);
+  }
+  if (filters.sortBy) {
+      params.append('sortBy', filters.sortBy);
   }
   return apiRequest(`/videos?${params.toString()}`);
 }
@@ -93,7 +96,7 @@ export const getVideoBySlug = async (slug: string) => {
 
 export const getSiteSettings = async () => {
     try {
-        return await apiRequest('/admin/settings');
+        return await apiRequest('/settings');
     } catch (e) {
         console.error("Could not fetch site settings, using fallback.", e);
         // Provide a sensible default structure to prevent crashes

@@ -10,10 +10,12 @@ import { getVideos, getSiteSettings, updateSiteSettings } from "@/lib/data"
 import { useToast } from "@/hooks/use-toast"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Search } from "lucide-react"
 
 export default function CustomizePage() {
   const { toast } = useToast();
   const [allVideos, setAllVideos] = useState([]);
+  const [videoSearchTerm, setVideoSearchTerm] = useState("");
   const [settings, setSettings] = useState({
     theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
     banner: {
@@ -28,6 +30,10 @@ export default function CustomizePage() {
     featuredVideoIds: []
   });
 
+  const filteredVideos = allVideos.filter(video =>
+    video.title.toLowerCase().includes(videoSearchTerm.toLowerCase())
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,12 +44,13 @@ export default function CustomizePage() {
         
         setAllVideos(allVideosData);
 
-        if (siteSettings && Object.keys(siteSettings).length > 0) {
+        // A more robust way to merge settings
+        if (siteSettings && typeof siteSettings === 'object' && Object.keys(siteSettings).length > 0) {
           setSettings(prev => ({
             ...prev,
             ...siteSettings,
-            theme: siteSettings.theme || prev.theme,
-            banner: siteSettings.banner || prev.banner,
+            theme: { ...prev.theme, ...siteSettings.theme },
+            banner: { ...prev.banner, ...siteSettings.banner },
             featuredVideoIds: siteSettings.featuredVideoIds || []
           }));
         }
@@ -78,9 +85,10 @@ export default function CustomizePage() {
 
   const handleFeaturedVideoChange = (videoId, checked) => {
     setSettings(prev => {
+        const currentFeaturedIds = prev.featuredVideoIds || [];
         const newFeaturedIds = checked
-            ? [...prev.featuredVideoIds, videoId]
-            : prev.featuredVideoIds.filter(id => id !== videoId);
+            ? [...currentFeaturedIds, videoId]
+            : currentFeaturedIds.filter(id => id !== videoId);
         return { ...prev, featuredVideoIds: newFeaturedIds };
     });
   };
@@ -97,16 +105,16 @@ export default function CustomizePage() {
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="site-name">Site Name (Title)</Label>
-              <Input id="site-name" value={settings.siteName} onChange={(e) => handleInputChange('siteName', e.target.value)} />
+              <Label htmlFor="siteName">Site Name (Title)</Label>
+              <Input id="siteName" value={settings.siteName} onChange={(e) => handleInputChange('siteName', e.target.value)} />
             </div>
              <div className="space-y-2">
-              <Label htmlFor="site-logo-url">Site Logo URL</Label>
-              <Input id="site-logo-url" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', e.target.value)} />
+              <Label htmlFor="siteLogoUrl">Site Logo URL</Label>
+              <Input id="siteLogoUrl" value={settings.siteLogoUrl} onChange={(e) => handleInputChange('siteLogoUrl', e.target.value)} />
             </div>
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="site-motto">Site Motto (Meta Description)</Label>
-              <Textarea id="site-motto" value={settings.siteMotto} onChange={(e) => handleInputChange('siteMotto', e.target.value)} />
+              <Label htmlFor="siteMotto">Site Motto (Meta Description)</Label>
+              <Textarea id="siteMotto" value={settings.siteMotto} onChange={(e) => handleInputChange('siteMotto', e_mode.target.value)} />
             </div>
           </CardContent>
         </Card>
@@ -118,24 +126,24 @@ export default function CustomizePage() {
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="primary-color">Primary Color</Label>
+              <Label htmlFor="primaryColor">Primary Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" id="primary-color" value={settings.theme.primaryColor} onChange={(e) => handleThemeChange('primaryColor', e.target.value)} className="w-12 h-10 p-1" />
+                <Input type="color" id="primaryColor" value={settings.theme.primaryColor} onChange={(e) => handleThemeChange('primaryColor', e.target.value)} className="w-12 h-10 p-1" />
                 <Input type="text" value={settings.theme.primaryColor} onChange={(e) => handleThemeChange('primaryColor', e.target.value)} />
               </div>
               <p className="text-xs text-muted-foreground">Used for buttons, links, and highlights.</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="accent-color">Accent Color</Label>
+              <Label htmlFor="accentColor">Accent Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" id="accent-color" value={settings.theme.accentColor} onChange={(e) => handleThemeChange('accentColor', e.target.value)} className="w-12 h-10 p-1" />
+                <Input type="color" id="accentColor" value={settings.theme.accentColor} onChange={(e) => handleThemeChange('accentColor', e.target.value)} className="w-12 h-10 p-1" />
                 <Input type="text" value={settings.theme.accentColor} onChange={(e) => handleThemeChange('accentColor', e.target.value)} />
               </div>
                <p className="text-xs text-muted-foreground">Used for interactive elements.</p>
             </div>
              <div className="space-y-2">
-              <Label htmlFor="font-family">Font Family</Label>
-              <Input id="font-family" value={settings.theme.fontFamily} onChange={(e) => handleThemeChange('fontFamily', e.target.value)} />
+              <Label htmlFor="fontFamily">Font Family</Label>
+              <Input id="fontFamily" value={settings.theme.fontFamily} onChange={(e) => handleThemeChange('fontFamily', e.target.value)} />
               <p className="text-xs text-muted-foreground">Enter a font name from Google Fonts.</p>
             </div>
           </CardContent>
@@ -149,20 +157,20 @@ export default function CustomizePage() {
           <CardContent className="space-y-4">
              <div className="flex items-center space-x-2">
                 <Switch 
-                    id="banner-enabled" 
+                    id="bannerEnabled" 
                     checked={settings.banner.enabled} 
                     onCheckedChange={(checked) => handleBannerChange('enabled', checked)}
                 />
-                <Label htmlFor="banner-enabled">Show promotional banner</Label>
+                <Label htmlFor="bannerEnabled">Show promotional banner</Label>
             </div>
             <div className="space-y-2">
-                <Label htmlFor="banner-text">Banner Text</Label>
-                <Textarea id="banner-text" value={settings.banner.text} onChange={(e) => handleBannerChange('text', e.target.value)} disabled={!settings.banner.enabled} />
+                <Label htmlFor="bannerText">Banner Text</Label>
+                <Textarea id="bannerText" value={settings.banner.text} onChange={(e) => handleBannerChange('text', e.target.value)} disabled={!settings.banner.enabled} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="banner-color">Banner Color</Label>
+              <Label htmlFor="bannerColor">Banner Color</Label>
               <div className="flex items-center gap-2">
-                <Input type="color" id="banner-color" value={settings.banner.color} onChange={(e) => handleBannerChange('color', e.target.value)} className="w-12 h-10 p-1" disabled={!settings.banner.enabled}/>
+                <Input type="color" id="bannerColor" value={settings.banner.color} onChange={(e) => handleBannerChange('color', e.target.value)} className="w-12 h-10 p-1" disabled={!settings.banner.enabled}/>
                 <Input type="text" value={settings.banner.color} onChange={(e) => handleBannerChange('color', e.target.value)} disabled={!settings.banner.enabled} />
               </div>
             </div>
@@ -177,24 +185,33 @@ export default function CustomizePage() {
             <CardContent>
                  <div className="flex items-center space-x-2 mb-4">
                     <Switch 
-                        id="show-featured" 
+                        id="showFeatured" 
                         checked={settings.showFeatured} 
                         onCheckedChange={(checked) => handleInputChange('showFeatured', checked)}
                     />
-                    <Label htmlFor="show-featured">Show featured videos section</Label>
+                    <Label htmlFor="showFeatured">Show featured videos section</Label>
+                </div>
+                <div className="relative mb-4">
+                    <Input 
+                      placeholder="Search videos to feature..."
+                      value={videoSearchTerm}
+                      onChange={(e) => setVideoSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"/>
                 </div>
                 <div className="space-y-2 max-h-60 overflow-y-auto border p-2 rounded-md">
-                    {allVideos.map((video) => (
+                    {filteredVideos.length > 0 ? filteredVideos.map((video) => (
                         <div key={video.id} className="flex items-center space-x-2">
                             <Checkbox
                                 id={`video-${video.id}`}
-                                checked={settings.featuredVideoIds.includes(video.id)}
+                                checked={settings.featuredVideoIds?.includes(video.id)}
                                 onCheckedChange={(checked) => handleFeaturedVideoChange(video.id, checked)}
                                 disabled={!settings.showFeatured}
                             />
                             <Label htmlFor={`video-${video.id}`}>{video.title}</Label>
                         </div>
-                    ))}
+                    )) : <p className="text-muted-foreground text-sm text-center py-4">No videos found.</p>}
                 </div>
             </CardContent>
         </Card>

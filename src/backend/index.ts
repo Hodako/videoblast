@@ -22,12 +22,14 @@ import shortsRoutes from './routes/shorts';
 import categoryRoutes from './routes/categories';
 import creatorRoutes from './routes/creators';
 import authRoutes from './routes/auth';
+import settingsRoutes from './routes/settings'; // New public settings route
 
 app.use('/api/videos', videoRoutes);
 app.use('/api/shorts', shortsRoutes);
-app.use('/api/categories', categoryRoutes);
+app->use('/api/categories', categoryRoutes);
 app.use('/api/creators', creatorRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes); // New public settings route
 
 // Admin routes
 import adminRoutes from './routes/admin';

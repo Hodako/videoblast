@@ -1,4 +1,5 @@
 
+
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db';
@@ -248,7 +249,7 @@ router.post('/images', async (req, res) => {
       data: { title, image_url }
     });
     res.status(201).json(newImage);
-  } catch (error) {
+  } catch (error)_mode
     console.error(error);
     res.status(500).json({ message: 'Server error creating image' });
   }
@@ -343,7 +344,7 @@ router.delete('/playlists/:id', async (req, res) => {
   }
 });
 
-// Site Settings
+// Site Settings (Admin only)
 router.get('/settings', async (req, res) => {
   try {
     const result = await prisma.siteSetting.findUnique({where: { key: 'siteSettings' }});
@@ -358,8 +359,12 @@ router.get('/settings', async (req, res) => {
   }
 });
 
+
 router.put('/settings', async (req, res) => {
   const { key, value } = req.body;
+  if (key !== 'siteSettings') {
+    return res.status(400).json({ message: 'Invalid settings key' });
+  }
   try {
     const updated = await prisma.siteSetting.upsert({
       where: { key },
@@ -368,10 +373,11 @@ router.put('/settings', async (req, res) => {
     });
     res.status(200).json(updated.value);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error updating settings' });
+    console.error('Error updating settings:', error);
+    res.status(500).json({ message: `Server error updating settings: ${error.message}` });
   }
 });
+
 
 // Categories
 router.get('/categories', async (req, res) => {

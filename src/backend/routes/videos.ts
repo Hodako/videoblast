@@ -23,8 +23,9 @@ const checkAuth = (req, res, next) => {
 
 
 router.get('/', async (req, res) => {
-  const { type, category, tag } = req.query;
+  const { type, category, tag, sortBy } = req.query;
   const where: any = {};
+  let orderBy: any = { display_order: 'asc' };
   
   if (type) {
       const types = Array.isArray(type) ? type : [type];
@@ -39,15 +40,19 @@ router.get('/', async (req, res) => {
       where.tags = { has: tag as string };
   }
 
+  if (sortBy === 'recent') {
+      orderBy = { uploaded: 'desc' };
+  } else if (sortBy === 'popular') {
+      orderBy = { views: 'desc' };
+  }
+
   try {
     const videos = await prisma.video.findMany({
       where,
       include: {
         creator: true
       },
-      orderBy: {
-        display_order: 'asc',
-      },
+      orderBy,
     });
     res.json(videos);
   } catch (error) {
@@ -74,11 +79,11 @@ router.get('/by-slug/:slug', async (req, res) => {
     if (!video) {
       return res.status(404).json({ message: 'Video not found' });
     }
-    // Increment views
-    await prisma.video.update({
+    // Increment views - should not await to avoid blocking response
+    prisma.video.update({
       where: { id: video.id },
       data: { views: { increment: 1 } },
-    });
+    }).catch(console.error);
 
     res.json(video);
   } catch (error) {

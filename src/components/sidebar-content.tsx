@@ -14,16 +14,15 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 );
 
 type SidebarContentProps = {
-  onFilterChange: (filters: { types?: string[], category?: string, tag?: string }) => void;
+  onFilterChange: (filters: { types?: string[], category?: string, tag?: string, sortBy?: string }) => void;
   categories: any[];
+  tags: string[];
 };
 
-export default function SidebarContent({ onFilterChange, categories }: SidebarContentProps) {
+export default function SidebarContent({ onFilterChange, categories, tags }: SidebarContentProps) {
   const [types, setTypes] = useState<string[]>([]);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   
-  // Example tags - in a real app, these could be fetched or dynamically generated
-  const popularTags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"]; 
-
   const handleTypeChange = (type: string) => {
     const newTypes = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
     setTypes(newTypes);
@@ -31,11 +30,18 @@ export default function SidebarContent({ onFilterChange, categories }: SidebarCo
   }
 
   const handleCategoryChange = (categoryId: string) => {
-    onFilterChange({ category: categoryId === 'all' ? null : categoryId });
+    setActiveTag(null);
+    onFilterChange({ category: categoryId === 'all' ? null : categoryId, tag: null });
   }
 
   const handleTagClick = (tag: string) => {
-    onFilterChange({ tag });
+    const newTag = tag === activeTag ? null : tag;
+    setActiveTag(newTag);
+    onFilterChange({ tag: newTag });
+  }
+
+  const handleSortChange = (sort: string) => {
+    onFilterChange({ sortBy: sort });
   }
 
 
@@ -65,14 +71,14 @@ export default function SidebarContent({ onFilterChange, categories }: SidebarCo
       </SidebarSection>
       
       <SidebarSection title="Sort by">
-        <Select defaultValue="relevance">
+        <Select defaultValue="relevance" onValueChange={handleSortChange}>
           <SelectTrigger className="w-full bg-muted border-none">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="relevance">Relevance</SelectItem>
             <SelectItem value="recent">Most Recent</SelectItem>
-            <SelectItem value="viewed">Most Viewed</SelectItem>
+            <SelectItem value="popular">Most Popular</SelectItem>
           </SelectContent>
         </Select>
       </SidebarSection>
@@ -91,38 +97,15 @@ export default function SidebarContent({ onFilterChange, categories }: SidebarCo
         </Select>
       </SidebarSection>
       
-      <SidebarSection title="Duration (min)">
-        <Select defaultValue="any">
-          <SelectTrigger className="w-full bg-muted border-none">
-            <SelectValue placeholder="Duration" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any</SelectItem>
-            <SelectItem value="under5">Under 5 min</SelectItem>
-            <SelectItem value="5-20">5-20 min</SelectItem>
-            <SelectItem value="over20">20+ min</SelectItem>
-          </SelectContent>
-        </Select>
-      </SidebarSection>
-      
-      <SidebarSection title="Date">
-        <Select defaultValue="all">
-          <SelectTrigger className="w-full bg-muted border-none">
-            <SelectValue placeholder="Date" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All time</SelectItem>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This week</SelectItem>
-            <SelectItem value="month">This month</SelectItem>
-          </SelectContent>
-        </Select>
-      </SidebarSection>
-
       <SidebarSection title="Tags">
         <div className="flex flex-wrap gap-2">
-          {popularTags.map(tag => (
-            <Badge key={tag} variant="secondary" className="cursor-pointer hover:bg-primary/20" onClick={() => handleTagClick(tag)}>
+          {tags.map(tag => (
+            <Badge 
+              key={tag} 
+              variant={tag === activeTag ? "default" : "secondary"}
+              className="cursor-pointer hover:bg-primary/20" 
+              onClick={() => handleTagClick(tag)}
+            >
               {tag}
             </Badge>
           ))}

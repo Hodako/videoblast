@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/header';
 import PromoBanner from '@/components/promo-banner';
 import SidebarContent from '@/components/sidebar-content';
@@ -22,9 +22,10 @@ export default function Home() {
   const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filters, setFilters] = useState({ types: [], category: null, tag: null });
+  const [filters, setFilters] = useState({ types: [], category: null, tag: null, sortBy: 'relevance' });
   const [isLoading, setIsLoading] = useState(true);
   const [siteSettings, setSiteSettings] = useState(null);
+  const [allTags, setAllTags] = useState([]);
 
   useEffect(() => {
     if (y > lastY) {
@@ -35,7 +36,7 @@ export default function Home() {
     setLastY(y);
   }, [y, lastY]);
 
-  const fetchFilteredVideos = async (newFilters) => {
+  const fetchFilteredVideos = useCallback(async (newFilters) => {
       setIsLoading(true);
       try {
         const videosData = await getVideos(newFilters);
@@ -45,7 +46,7 @@ export default function Home() {
       } finally {
         setIsLoading(false);
       }
-  };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +58,19 @@ export default function Home() {
           getCategories(),
           getSiteSettings()
         ]);
+        
+        const tags = videosData.reduce((acc, video) => {
+            if(video.tags) {
+                video.tags.forEach(tag => {
+                    if (!acc.includes(tag)) {
+                        acc.push(tag);
+                    }
+                });
+            }
+            return acc;
+        }, []);
+
+        setAllTags(tags);
         setAllVideos(videosData);
         setShorts(shortsData);
         setCategories(categoriesData);
@@ -80,10 +94,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <PromoBanner text={siteSettings?.bannerText}/>
+      <PromoBanner settings={siteSettings}/>
       <div className="flex flex-col md:flex-row">
         <aside className="w-full shrink-0 md:w-[250px] md:sticky md:top-[60px] md:h-[calc(100vh-60px)] overflow-y-auto bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
-          <SidebarContent onFilterChange={handleFilterChange} categories={categories} />
+          <SidebarContent onFilterChange={handleFilterChange} categories={categories} tags={allTags} />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
           {isLoading ? (
@@ -123,7 +137,7 @@ export default function Home() {
               videos={allVideos} 
               shorts={shorts} 
               categories={categories}
-              onCategoryChange={(catId) => handleFilterChange({category: catId})}
+              onCategoryChange={(catId) => handleFilterChange({category: catId, tag: null})}
               siteSettings={siteSettings}
             />
           )}
