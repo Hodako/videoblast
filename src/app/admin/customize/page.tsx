@@ -9,31 +9,40 @@ import { Textarea } from "@/components/ui/textarea"
 import { getVideos, reorderVideos, getSiteSettings, updateSiteSettings } from "@/lib/data"
 import { GripVertical } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
 
 export default function CustomizePage() {
   const { toast } = useToast();
   const [videos, setVideos] = useState([]);
+  const [allVideos, setAllVideos] = useState([]);
   const [settings, setSettings] = useState({
     theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
     bannerText: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
     siteName: 'StreamVerse',
     siteLogoUrl: '/logo-placeholder.svg', // Default placeholder
+    showFeatured: true,
+    featuredVideoIds: []
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const videosData = await getVideos();
-        setVideos(videosData.slice(0, 5)); // show first 5 for reordering
-        const siteSettings = await getSiteSettings();
-        // Merge fetched settings with defaults
-        if (siteSettings) {
+        const [videosData, siteSettings, allVideosData] = await Promise.all([
+            getVideos(),
+            getSiteSettings(),
+            getVideos()
+        ]);
+        
+        setVideos(videosData);
+        setAllVideos(allVideosData);
+
+        if (siteSettings && Object.keys(siteSettings).length > 0) {
           setSettings(prev => ({
+            ...prev,
+            ...siteSettings,
             theme: siteSettings.theme || prev.theme,
-            bannerText: siteSettings.bannerText || prev.bannerText,
-            siteName: siteSettings.siteName || prev.siteName,
-            siteLogoUrl: siteSettings.siteLogoUrl || prev.siteLogoUrl,
+            featuredVideoIds: siteSettings.featuredVideoIds || []
           }));
         }
       } catch (error) {
@@ -49,17 +58,7 @@ export default function CustomizePage() {
       await updateSiteSettings({ key: 'siteSettings', value: settings });
       toast({ title: "Success", description: "Site settings updated." });
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: `Failed to save settings.` });
-    }
-  };
-
-  const handleOrderSave = async () => {
-    try {
-        const orderedVideos = videos.map((video, index) => ({ id: video.id, order: index }));
-        await reorderVideos(orderedVideos);
-        toast({ title: "Success", description: "Video order saved." });
-    } catch (error) {
-        toast({ variant: "destructive", title: "Error", description: "Failed to save video order." });
+      toast({ variant: "destructive", title: "Error", description: `Failed to save settings: ${error.message}` });
     }
   };
   
@@ -70,6 +69,15 @@ export default function CustomizePage() {
   const handleThemeChange = (key, value) => {
      setSettings(prev => ({ ...prev, theme: { ...prev.theme, [key]: value } }));
   }
+
+  const handleFeaturedVideoChange = (videoId, checked) => {
+    setSettings(prev => {
+        const newFeaturedIds = checked
+            ? [...prev.featuredVideoIds, videoId]
+            : prev.featuredVideoIds.filter(id => id !== videoId);
+        return { ...prev, featuredVideoIds: newFeaturedIds };
+    });
+  };
 
   return (
     <div>
@@ -134,21 +142,32 @@ export default function CustomizePage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Landing Page Videos</CardTitle>
-            <CardDescription>Drag and drop to reorder the videos on the main page.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-                {videos.map((video) => (
-                    <div key={video.id} className="flex items-center gap-4 p-2 rounded-lg bg-muted">
-                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                        <span className="font-medium text-sm">{video.title}</span>
-                    </div>
-                ))}
-            </div>
-            <Button className="mt-4" onClick={handleOrderSave}>Save Order</Button>
-          </CardContent>
+            <CardHeader>
+                <CardTitle>Landing Page Videos</CardTitle>
+                <CardDescription>Choose which videos to feature on the homepage.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="flex items-center space-x-2 mb-4">
+                    <Switch 
+                        id="show-featured" 
+                        checked={settings.showFeatured} 
+                        onCheckedChange={(checked) => handleInputChange('showFeatured', checked)}
+                    />
+                    <Label htmlFor="show-featured">Show featured videos section</Label>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto border p-2 rounded-md">
+                    {allVideos.map((video) => (
+                        <div key={video.id} className="flex items-center space-x-2">
+                            <Checkbox
+                                id={`video-${video.id}`}
+                                checked={settings.featuredVideoIds.includes(video.id)}
+                                onCheckedChange={(checked) => handleFeaturedVideoChange(video.id, checked)}
+                            />
+                            <Label htmlFor={`video-${video.id}`}>{video.title}</Label>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
         </Card>
         
         <div className="flex justify-end">

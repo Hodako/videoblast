@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Header from '@/components/header';
-import { getVideoBySlug, getComments as fetchComments, postComment, getVideos } from '@/lib/data';
+import { getVideoBySlug, getComments as fetchComments, postComment, getVideos, getLikes, likeVideo, unlikeVideo } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send } from 'lucide-react';
@@ -29,12 +29,15 @@ export default function WatchPage() {
   
   const [video, setVideo] = useState(null);
   const [comments, setComments] = useState([]);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   const [recommendedVideos, setRecommendedVideos] = useState([]);
   const [isBuffering, setIsBuffering] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [visibleComments, setVisibleComments] = useState(3);
   
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -63,8 +66,13 @@ export default function WatchPage() {
 
       if (currentVideo) {
         setVideo(currentVideo);
-        const commentsData = await fetchComments(currentVideo.id);
+        const [commentsData, likesData] = await Promise.all([
+            fetchComments(currentVideo.id),
+            getLikes(currentVideo.id),
+        ]);
         setComments(commentsData);
+        setLikeCount(likesData.count);
+        setIsLiked(likesData.isLiked);
         setRecommendedVideos(allVideos.filter(v => v.id !== currentVideo.id));
       } else {
         router.push('/not-found');
@@ -122,7 +130,7 @@ export default function WatchPage() {
   }, [isMuted]);
 
   const handleSeekChange = (value: number[]) => {
-    setIsSeeking(true); // User starts dragging
+    setIsSeeking(true);
     setProgress(value[0]);
   };
   
@@ -132,7 +140,7 @@ export default function WatchPage() {
       playerRef.current.seekTo(newTime, 'seconds');
       setProgress(newTime);
     }
-    setIsSeeking(false); // User releases slider
+    setIsSeeking(false);
   };
   
   const handleProgress = (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => {
@@ -184,6 +192,26 @@ export default function WatchPage() {
       } finally {
           setIsSubmittingComment(false);
       }
+  }
+
+  const handleLike = async () => {
+    if(!user || !video) {
+        toast({variant: "destructive", title: "Please login to like videos."})
+        return;
+    };
+    try {
+      if(isLiked) {
+        await unlikeVideo(video.id);
+        setLikeCount(prev => prev -1);
+        setIsLiked(false);
+      } else {
+        await likeVideo(video.id);
+        setLikeCount(prev => prev + 1);
+        setIsLiked(true);
+      }
+    } catch (error) {
+       toast({ variant: "destructive", title: "Error", description: `Failed to update like: ${error.message}` });
+    }
   }
 
   useEffect(() => {
@@ -401,8 +429,8 @@ export default function WatchPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost">
-                    <ThumbsUp className="mr-2 h-4 w-4" /> 0
+                  <Button variant="ghost" onClick={handleLike}>
+                    <ThumbsUp className={cn("mr-2 h-4 w-4", isLiked && "fill-current text-primary")} /> {likeCount}
                   </Button>
                   <Button variant="ghost" onClick={handleShare}>
                     <Share2 className="mr-2 h-4 w-4" /> Share
@@ -444,7 +472,7 @@ export default function WatchPage() {
                           </div>
                       </div>
                     )}
-                    {comments.map((comment: any) => (
+                    {comments.slice(0, visibleComments).map((comment: any) => (
                       <div key={comment.id} className="flex gap-4">
                         <Avatar>
                            <AvatarFallback>{comment.user.first_name.charAt(0)}</AvatarFallback>
@@ -458,6 +486,9 @@ export default function WatchPage() {
                         </div>
                       </div>
                     ))}
+                    {comments.length > visibleComments && (
+                      <Button variant="link" onClick={() => setVisibleComments(prev => prev + 3)}>Show more comments</Button>
+                    )}
                   </div>
               </div>
             </div>

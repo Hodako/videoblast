@@ -1,62 +1,63 @@
-// prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id            Int       @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   first_name    String
   last_name     String
-  email         String    @unique
+  email         String      @unique
   password_hash String
-  created_at    DateTime  @default(now())
-  role          String    @default("user") // 'user' or 'admin'
+  created_at    DateTime    @default(now())
+  role          String      @default("user") // 'user' or 'admin'
+  videos        Video[]
   playlists     Playlist[]
   comments      Comment[]
   likes         Like[]
-  videos        Video[]
 }
 
 model Video {
-  id            Int             @id @default(autoincrement())
-  slug          String          @unique
+  id            Int         @id @default(autoincrement())
+  slug          String      @unique
   title         String
   description   String?
   duration      String?
-  views         Int             @default(0)
-  uploaded      DateTime        @default(now())
+  views         Int         @default(0)
+  uploaded      DateTime    @default(now())
   thumbnail_url String?
   video_url     String
   subtitle      String?
+  uploader      User        @relation(fields: [uploader_id], references: [id])
   uploader_id   Int
-  uploader      User            @relation(fields: [uploader_id], references: [id])
   tags          String[]
   meta_data     Json?
   display_order Int?
-  type          String?         // To store 'straight', 'gay', or 'trans'
-  creator_id    Int?
-  creator       Creator?        @relation(fields: [creator_id], references: [id])
-  categories    VideoCategory[]
-  playlists     PlaylistVideo[]
+  type          String? // 'straight', 'gay', 'trans'
   comments      Comment[]
   likes         Like[]
-
-  @@index([uploader_id])
-  @@index([creator_id])
+  creator       Creator?    @relation(fields: [creator_id], references: [id])
+  creator_id    Int?
+  categories    VideoCategory[]
+  playlists     PlaylistVideo[]
 }
 
 model Short {
-  id            Int     @id @default(autoincrement())
-  title         String  @unique
+  id            Int      @id @default(autoincrement())
+  title         String   @unique
   video_url     String
   thumbnail_url String?
-  views         String? // Kept as string to match existing frontend, can be updated later
+  views         String?
+  creator       Creator? @relation(fields: [creator_id], references: [id])
+  creator_id    Int?
 }
 
 model Image {
@@ -68,11 +69,9 @@ model Image {
 model Playlist {
   id      Int             @id @default(autoincrement())
   name    String
-  user_id Int
   user    User            @relation(fields: [user_id], references: [id])
+  user_id Int
   videos  PlaylistVideo[]
-
-  @@index([user_id])
 }
 
 model PlaylistVideo {
@@ -82,33 +81,27 @@ model PlaylistVideo {
   video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
 
   @@id([playlist_id, video_id])
-  @@index([video_id])
 }
 
 model Comment {
   id         Int      @id @default(autoincrement())
   text       String
+  user       User     @relation(fields: [user_id], references: [id])
   user_id    Int
+  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
   video_id   Int
   created_at DateTime @default(now())
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([video_id])
 }
 
 model Like {
-  id      Int   @id @default(autoincrement())
-  user_id Int
+  id       Int   @id @default(autoincrement())
+  user     User  @relation(fields: [user_id], references: [id])
+  user_id  Int
+  video    Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
   video_id Int
-  user    User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  video   Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, video_id])
-  @@index([video_id])
 }
-
 
 model SiteSetting {
   key   String @id
@@ -121,20 +114,20 @@ model Category {
   videos VideoCategory[]
 }
 
+model VideoCategory {
+  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id   Int
+  category   Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  category_id Int
+
+  @@id([video_id, category_id])
+}
+
 model Creator {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   image_url   String?
   description String?
   videos      Video[]
-}
-
-model VideoCategory {
-  video_id    Int
-  category_id Int
-  video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
-  category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
-
-  @@id([video_id, category_id])
-  @@index([category_id])
+  shorts      Short[]
 }

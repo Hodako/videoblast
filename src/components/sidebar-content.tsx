@@ -1,10 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { User, Heart, Palette } from 'lucide-react';
+import { getCategories } from '@/lib/data';
 
 const SidebarSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="mb-8">
@@ -14,18 +15,37 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 );
 
 type SidebarContentProps = {
-  onFilterChange: (filters: { types: string[] }) => void;
+  onFilterChange: (filters: { types?: string[], category?: string, tag?: string }) => void;
 };
 
 export default function SidebarContent({ onFilterChange }: SidebarContentProps) {
-  const tags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"];
   const [types, setTypes] = useState<string[]>([]);
+  const [categories, setCategories] = useState([]);
+  const popularTags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"]; // Could be fetched from DB
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      const data = await getCategories();
+      setCategories(data);
+    }
+    fetchCats();
+  }, []);
+
 
   const handleTypeChange = (type: string) => {
     const newTypes = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
     setTypes(newTypes);
     onFilterChange({ types: newTypes });
   }
+
+  const handleCategoryChange = (categoryId: string) => {
+    onFilterChange({ category: categoryId });
+  }
+
+  const handleTagClick = (tag: string) => {
+    onFilterChange({ tag });
+  }
+
 
   return (
     <div className="space-y-8">
@@ -66,16 +86,14 @@ export default function SidebarContent({ onFilterChange }: SidebarContentProps) 
       </SidebarSection>
 
       <SidebarSection title="Filter by Categories">
-        <Select>
+        <Select onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full bg-muted border-none">
             <SelectValue placeholder="Choose category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="gaming">Gaming</SelectItem>
-            <SelectItem value="music">Music</SelectItem>
-            <SelectItem value="sports">Sports</SelectItem>
-            <SelectItem value="comedy">Comedy</SelectItem>
-            <SelectItem value="documentary">Documentary</SelectItem>
+            {categories.map((cat: any) => (
+               <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </SidebarSection>
@@ -110,7 +128,11 @@ export default function SidebarContent({ onFilterChange }: SidebarContentProps) 
 
       <SidebarSection title="Tags">
         <div className="flex flex-wrap gap-2">
-          {tags.map(tag => <Badge key={tag} variant="secondary" className="cursor-pointer hover:bg-primary/20">{tag}</Badge>)}
+          {popularTags.map(tag => (
+            <Badge key={tag} variant="secondary" className="cursor-pointer hover:bg-primary/20" onClick={() => handleTagClick(tag)}>
+              {tag}
+            </Badge>
+          ))}
         </div>
       </SidebarSection>
     </div>

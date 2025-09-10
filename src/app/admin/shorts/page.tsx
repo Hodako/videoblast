@@ -7,14 +7,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAdminShorts, addShort, deleteShort } from "@/lib/data";
+import { getAdminShorts, addShort, deleteShort, getAdminCreators } from "@/lib/data";
 import { PlusCircle, Edit, Trash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminShortsPage() {
   const { toast } = useToast();
   const [shorts, setShorts] = useState([]);
-  const [newShort, setNewShort] = useState({ title: '', video_url: '', thumbnail_url: '' });
+  const [creators, setCreators] = useState([]);
+  const [newShort, setNewShort] = useState({ title: '', video_url: '', thumbnail_url: '', creator_id: null });
 
   const fetchShorts = async () => {
     try {
@@ -25,14 +27,25 @@ export default function AdminShortsPage() {
     }
   };
 
+  const fetchCreators = async () => {
+    try {
+      const creatorData = await getAdminCreators();
+      setCreators(creatorData);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to load creators." });
+    }
+  };
+
   useEffect(() => {
     fetchShorts();
+    fetchCreators();
   }, []);
 
   const handleAddShort = async () => {
+    const payload = { ...newShort, creator_id: newShort.creator_id ? parseInt(newShort.creator_id, 10) : null };
     try {
-      await addShort(newShort);
-      setNewShort({ title: '', video_url: '', thumbnail_url: '' });
+      await addShort(payload);
+      setNewShort({ title: '', video_url: '', thumbnail_url: '', creator_id: null });
       fetchShorts();
       toast({ title: "Success", description: "Short added." });
     } catch (error) {
@@ -75,6 +88,19 @@ export default function AdminShortsPage() {
                 <Label htmlFor="thumbnail-url" className="text-right">Thumbnail URL</Label>
                 <Input id="thumbnail-url" value={newShort.thumbnail_url} onChange={(e) => setNewShort({...newShort, thumbnail_url: e.target.value})} placeholder="https://example.com/image.jpg" className="col-span-3" />
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="creator_id" className="text-right">Creator</Label>
+                 <Select value={newShort.creator_id?.toString() ?? ''} onValueChange={(value) => setNewShort({...newShort, creator_id: value})}>
+                    <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select creator" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {creators.map((creator: any) => (
+                        <SelectItem key={creator.id} value={creator.id.toString()}>{creator.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+              </div>
               <Button onClick={handleAddShort}>Save Short</Button>
             </div>
           </DialogContent>
@@ -82,11 +108,12 @@ export default function AdminShortsPage() {
       </div>
 
       <Card>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Creator</TableHead>
                 <TableHead>Views</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -95,6 +122,7 @@ export default function AdminShortsPage() {
               {shorts.map((short: any) => (
                 <TableRow key={short.id}>
                   <TableCell className="font-medium">{short.title}</TableCell>
+                  <TableCell>{short.creator?.name || 'N/A'}</TableCell>
                   <TableCell>{short.views}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-2 justify-end">

@@ -8,6 +8,7 @@ const router = Router();
 const checkAuth = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
+    req.user = null;
     return next(); // No token, continue as guest
   }
   try {
@@ -15,16 +16,32 @@ const checkAuth = (req, res, next) => {
     req.user = { id: decoded.id };
     next();
   } catch (error) {
+    req.user = null;
     return next(); // Invalid token, continue as guest
   }
 };
 
 
 router.get('/', async (req, res) => {
-  const { type } = req.query;
+  const { type, category, tag } = req.query;
+  const where: any = {};
+  
+  if (type) {
+      const types = Array.isArray(type) ? type : [type];
+      if (types.length > 0) {
+        where.type = { in: types };
+      }
+  }
+  if (category) {
+      where.categories = { some: { category_id: parseInt(category as string) } };
+  }
+  if (tag) {
+      where.tags = { has: tag as string };
+  }
+
   try {
     const videos = await prisma.video.findMany({
-      where: type ? { type: type as string } : {},
+      where,
       include: {
         creator: true
       },
@@ -79,6 +96,7 @@ router.get('/search', async (req, res) => {
         OR: [
           { title: { contains: q as string, mode: 'insensitive' } },
           { description: { contains: q as string, mode: 'insensitive' } },
+          { tags: { has: q as string } }
         ],
       },
        include: {
@@ -160,24 +178,18 @@ router.post('/:videoId/like', checkAuth, async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // Use upsert to either create a like or do nothing if it exists
-    await prisma.like.upsert({
-      where: {
-        user_id_video_id: {
-          user_id: userId,
-          video_id: parseInt(videoId),
-        },
-      },
-      create: {
+    await prisma.like.create({
+      data: {
         user_id: userId,
         video_id: parseInt(videoId),
-      },
-      update: {}, // Do nothing if it already exists
+      }
     });
-
     res.status(204).send();
   } catch (error) {
     console.error(error);
+    if(error.code === 'P2002'){
+      return res.status(409).json({ message: 'Video already liked.' });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -191,27 +203,45 @@ router.delete('/:videoId/like', checkAuth, async (req, res) => {
   const userId = req.user.id;
 
   try {
-    await prisma.like.deleteMany({
+    await prisma.like.delete({
       where: {
-        user_id: userId,
-        video_id: parseInt(videoId),
+        user_id_video_id: {
+          user_id: userId,
+          video_id: parseInt(videoId),
+        }
       },
     });
 
     res.status(204).send();
   } catch (error) {
     console.error(error);
+    if(error.code === 'P2025'){
+       return res.status(404).json({ message: 'Like not found.' });
+    }
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.get('/:videoId/likes', async (req, res) => {
+router.get('/:videoId/likes', checkAuth, async (req, res) => {
     const { videoId } = req.params;
     try {
-        const likes = await prisma.like.count({
+        const likesCount = await prisma.like.count({
             where: { video_id: parseInt(videoId) },
         });
-        res.json({ count: likes });
+
+        let userLike = null;
+        if(req.user) {
+          userLike = await prisma.like.findUnique({
+            where: {
+              user_id_video_id: {
+                user_id: req.user.id,
+                video_id: parseInt(videoId),
+              }
+            }
+          })
+        }
+        
+        res.json({ count: likesCount, isLiked: !!userLike });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

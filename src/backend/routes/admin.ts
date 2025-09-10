@@ -73,7 +73,7 @@ router.get('/videos', async (req, res) => {
                 creator: true,
             },
             orderBy: {
-                display_order: 'asc'
+                uploaded: 'desc'
             }
         });
          const videosWithCategoryIds = videos.map(video => ({
@@ -195,7 +195,9 @@ router.put('/videos/reorder', async (req, res) => {
 // Shorts
 router.get('/shorts', async (req, res) => {
     try {
-        const result = await prisma.short.findMany();
+        const result = await prisma.short.findMany({
+          include: { creator: true }
+        });
         res.json(result);
     } catch (error) {
         console.error(error);
@@ -203,14 +205,17 @@ router.get('/shorts', async (req, res) => {
     }
 });
 router.post('/shorts', async (req, res) => {
-  const { title, video_url, thumbnail_url, views } = req.body;
+  const { title, video_url, thumbnail_url, views, creator_id } = req.body;
   try {
     const newShort = await prisma.short.create({
-      data: { title, video_url, thumbnail_url, views: views || '0' }
+      data: { title, video_url, thumbnail_url, views: views || '0', creator_id }
     });
     res.status(201).json(newShort);
   } catch (error) {
     console.error(error);
+    if (error.code === 'P2002') {
+        return res.status(409).json({ message: 'A short with this title already exists.'});
+    }
     res.status(500).json({ message: 'Server error creating short' });
   }
 });
@@ -329,6 +334,7 @@ router.put('/playlists/:id', async (req, res) => {
 router.delete('/playlists/:id', async (req, res) => {
   const { id } = req.params;
   try {
+    await prisma.playlistVideo.deleteMany({ where: { playlist_id: parseInt(id) } });
     await prisma.playlist.delete({ where: { id: parseInt(id) } });
     res.status(204).send();
   } catch (error) {
@@ -355,12 +361,12 @@ router.get('/settings', async (req, res) => {
 router.put('/settings', async (req, res) => {
   const { key, value } = req.body;
   try {
-    await prisma.siteSetting.upsert({
+    const updated = await prisma.siteSetting.upsert({
       where: { key },
       update: { value },
       create: { key, value }
     });
-    res.status(204).send();
+    res.status(200).json(updated.value);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error updating settings' });
@@ -385,6 +391,9 @@ router.post('/categories', async (req, res) => {
         const newCategory = await prisma.category.create({ data: { name } });
         res.status(201).json(newCategory);
     } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ message: 'A category with this name already exists.'});
+        }
         res.status(500).json({ message: 'Server error creating category' });
     }
 });
@@ -398,6 +407,9 @@ router.put('/categories/:id', async (req, res) => {
         const updated = await prisma.category.update({ where: { id: parseInt(id) }, data: { name }});
         res.json(updated);
     } catch (error) {
+         if (error.code === 'P2002') {
+            return res.status(409).json({ message: 'A category with this name already exists.'});
+        }
         res.status(500).json({ message: 'Server error updating category' });
     }
 });
@@ -429,6 +441,9 @@ router.post('/creators', async (req, res) => {
         const newCreator = await prisma.creator.create({ data: { name, image_url, description } });
         res.status(201).json(newCreator);
     } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ message: 'A creator with this name already exists.'});
+        }
         res.status(500).json({ message: 'Server error creating creator' });
     }
 });
@@ -442,6 +457,9 @@ router.put('/creators/:id', async (req, res) => {
         const updated = await prisma.creator.update({ where: { id: parseInt(id) }, data: { name, image_url, description }});
         res.json(updated);
     } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ message: 'A creator with this name already exists.'});
+        }
         res.status(500).json({ message: 'Server error updating creator' });
     }
 });

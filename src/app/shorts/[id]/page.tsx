@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, ChevronUp, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ShortsPage() {
   const params = useParams();
@@ -15,12 +16,15 @@ export default function ShortsPage() {
   
   const [shorts, setShorts] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(id);
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const fetchShorts = async () => {
+      setIsLoading(true);
       const shortsData = await getShorts();
       setShorts(shortsData);
+      setIsLoading(false);
     };
     fetchShorts();
   }, []);
@@ -46,7 +50,7 @@ export default function ShortsPage() {
   useEffect(() => {
     if (videoRef.current) {
         videoRef.current.currentTime = 0;
-        videoRef.current.play();
+        videoRef.current.play().catch(e => console.error("Autoplay was prevented.", e));
     }
     
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -64,10 +68,10 @@ export default function ShortsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, shorts.length]);
   
-  if (!currentShort) {
+  if (isLoading || !currentShort) {
     return (
       <div className="flex items-center justify-center h-screen bg-black text-white">
-        Loading...
+        <Skeleton className="w-full h-full max-w-[400px] aspect-[9/16] bg-neutral-800" />
       </div>
     );
   }
@@ -92,10 +96,10 @@ export default function ShortsPage() {
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent text-white">
           <div className="flex items-center gap-2 mb-2">
             <Avatar>
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${currentShort.title}`} />
-              <AvatarFallback>{currentShort.title.charAt(0)}</AvatarFallback>
+              <AvatarImage src={currentShort.creator?.image_url} />
+              <AvatarFallback>{currentShort.creator?.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <p className="font-semibold text-sm">@{currentShort.title.split(' ').join('').toLowerCase()}</p>
+            <p className="font-semibold text-sm">@{currentShort.creator?.name.split(' ').join('').toLowerCase()}</p>
           </div>
           <p className="text-sm">{currentShort.title}</p>
           <p className="text-xs text-neutral-300">{currentShort.views} views</p>

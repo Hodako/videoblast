@@ -28,14 +28,26 @@ async function main() {
     },
   });
 
-  console.log('Seeded admin user');
+  const normalUser = await prisma.user.upsert({
+    where: { email: 'user@example.com' },
+    update: {},
+    create: {
+      first_name: 'Normal',
+      last_name: 'User',
+      email: 'user@example.com',
+      password_hash,
+      role: 'user',
+    },
+  });
+
+  console.log('Seeded users');
 
   const creator1 = await prisma.creator.upsert({
       where: { name: 'Blender Foundation'},
       update: {},
       create: {
           name: 'Blender Foundation',
-          image_url: 'https://i.pravatar.cc/150?u=blender',
+          image_url: 'https://yt3.ggpht.com/ytc/AIdro_k2E2-4i2sT3zGzGZ8zZ-ZzZ-ZzZ-ZzZ-ZzZ-Zz=s88-c-k-c0x00ffffff-no-rj',
           description: 'Official channel for the Blender Open Movie projects.'
       }
   });
@@ -45,12 +57,31 @@ async function main() {
       update: {},
       create: {
           name: 'Google',
-          image_url: 'https://i.pravatar.cc/150?u=google',
+          image_url: 'https://yt3.ggpht.com/ytc/AIdro_k9z-A2Y-3X6V8M4I-ZzZ-ZzZ-ZzZ-ZzZ-ZzZ-Zz=s88-c-k-c0x00ffffff-no-rj',
           description: 'Official Google channel.'
       }
   });
 
   console.log('Seeded creators');
+
+  const categories = [
+    { name: 'Animation' },
+    { name: 'Technology' },
+    { name: 'Comedy' },
+    { name: 'Shorts' },
+  ];
+
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: { name: category.name },
+      update: {},
+      create: category,
+    });
+  }
+  console.log('Seeded categories');
+  const animCat = await prisma.category.findUnique({where: {name: 'Animation'}});
+  const techCat = await prisma.category.findUnique({where: {name: 'Technology'}});
+
 
   const videos = [
     {
@@ -61,12 +92,13 @@ async function main() {
         'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       subtitle: 'By Blender Foundation',
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
-      duration: '10:34',
+      duration: '9:56',
       views: 1200000,
       uploaded: new Date('2023-10-15T08:00:00Z'),
       creator_id: creator1.id,
       tags: ['cartoon', 'bunny', 'comedy'],
-      type: 'straight'
+      type: 'straight',
+      categoryIds: [animCat.id]
     },
     {
       title: 'Elephants Dream',
@@ -75,12 +107,13 @@ async function main() {
         'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       subtitle: 'By Blender Foundation',
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
-      duration: '12:41',
+      duration: '10:53',
       views: 800000,
       uploaded: new Date('2023-09-20T12:00:00Z'),
       creator_id: creator1.id,
       tags: ['blender', 'open movie', 'animation'],
       type: 'gay',
+      categoryIds: [animCat.id]
     },
     { 
       title: 'For Bigger Blazes',
@@ -93,18 +126,25 @@ async function main() {
       uploaded: new Date('2023-08-01T10:00:00Z'),
       creator_id: creator2.id,
       tags: ['google', 'chromecast', 'hbo'],
-      type: 'straight'
+      type: 'straight',
+      categoryIds: [techCat.id]
     },
   ];
 
   for (const video of videos) {
+    const { categoryIds, ...videoData } = video;
     await prisma.video.upsert({
       where: { slug: createSlug(video.title) },
       update: {},
       create: {
-        ...video,
+        ...videoData,
         slug: createSlug(video.title),
         uploader_id: adminUser.id,
+        categories: {
+            create: categoryIds.map(id => ({
+                category: { connect: { id } }
+            }))
+        }
       },
     });
   }
@@ -117,12 +157,14 @@ async function main() {
       video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
       views: '2500000',
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
+      creator_id: creator2.id,
     },
     {
       title: 'For Bigger Joyrides',
       video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
       views: '3000000',
       thumbnail_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
+      creator_id: creator2.id,
     },
   ];
 
@@ -134,6 +176,23 @@ async function main() {
     });
   }
   console.log('Seeded shorts');
+
+  await prisma.siteSetting.upsert({
+    where: { key: 'siteSettings' },
+    update: {},
+    create: {
+      key: 'siteSettings',
+      value: {
+        theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
+        bannerText: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
+        siteName: 'StreamVerse',
+        siteLogoUrl: '/logo-placeholder.svg',
+        showFeatured: true
+      }
+    }
+  });
+  console.log('Seeded site settings');
+
   console.log('Seeding finished.');
 }
 

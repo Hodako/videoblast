@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/personalized-video-suggestions.ts';
 import '@/ai/flows/automated-trending-video-detection.ts';
+import '@/ai/flows/seo-suggestions.ts';

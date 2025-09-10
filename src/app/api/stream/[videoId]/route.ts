@@ -26,7 +26,6 @@ export async function GET(
 
     const videoUrl = video.video_url;
 
-    // 1. Get video size by making a HEAD request first
     const headResponse = await fetch(videoUrl, { method: 'HEAD' });
     if (!headResponse.ok) {
         return new NextResponse('Could not fetch video metadata', { status: 500 });
@@ -37,16 +36,19 @@ export async function GET(
         return new NextResponse('Could not determine video size', { status: 500 });
     }
 
-    // 2. Parse the Range header from the client's request
     const range = req.headers.get('range');
     
     if (range) {
       const parts = range.replace(/bytes=/, "").split("-");
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + CHUNK_SIZE, fileSize - 1);
+      
+      if(start >= fileSize) {
+        return new NextResponse('Requested range not satisfiable', { status: 416 });
+      }
+      
       const chunkSize = (end - start) + 1;
 
-      // 3. Fetch only the requested chunk from the source URL
       const videoResponse = await fetch(videoUrl, {
         headers: {
             'Range': `bytes=${start}-${end}`
@@ -57,7 +59,6 @@ export async function GET(
         return new NextResponse('Failed to fetch video chunk', { status: 500 });
       }
 
-      // 4. Stream the chunk back to the client with a 206 Partial Content status
       const headers = new Headers();
       headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
       headers.set('Accept-Ranges', 'bytes');
@@ -70,23 +71,18 @@ export async function GET(
       });
 
     } else {
-        // 5. If no range is requested, send the initial part of the video
         const headers = new Headers();
         headers.set('Content-Length', fileSize.toString());
         headers.set('Content-Type', 'video/mp4');
-        headers.set('Accept-Ranges', 'bytes'); // Important to tell the browser we support seeking
+        headers.set('Accept-Ranges', 'bytes'); 
 
-        // We can start by sending a smaller chunk or just the headers
-        // For simplicity, we can let the browser decide and handle the first request
-        // by just indicating we accept ranges. Often the browser will then make a ranged request.
-        // Or we can stream the whole thing if we want.
         const initialResponse = await fetch(videoUrl);
         if (!initialResponse.ok || !initialResponse.body) {
             return new NextResponse('Failed to fetch video', { status: 500 });
         }
         
         return new NextResponse(initialResponse.body, {
-            status: 200, // OK
+            status: 200, 
             headers,
         });
     }

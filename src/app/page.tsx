@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/header';
 import PromoBanner from '@/components/promo-banner';
 import SidebarContent from '@/components/sidebar-content';
@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useWindowScroll } from 'react-use';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { getVideos, getShorts } from '@/lib/data';
+import { getVideos, getShorts, getSiteSettings, getCategories } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
@@ -21,8 +21,10 @@ export default function Home() {
   const isMobile = useIsMobile();
   const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
-  const [filters, setFilters] = useState({ types: [] });
+  const [categories, setCategories] = useState([]);
+  const [filters, setFilters] = useState({ types: [], category: null });
   const [isLoading, setIsLoading] = useState(true);
+  const [siteSettings, setSiteSettings] = useState(null);
 
   useEffect(() => {
     if (y > lastY) {
@@ -49,10 +51,16 @@ export default function Home() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const videosData = await getVideos(filters);
-        const shortsData = await getShorts();
+        const [videosData, shortsData, categoriesData, settingsData] = await Promise.all([
+          getVideos(filters),
+          getShorts(),
+          getCategories(),
+          getSiteSettings()
+        ]);
         setAllVideos(videosData);
         setShorts(shortsData);
+        setCategories(categoriesData);
+        setSiteSettings(settingsData);
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
       } finally {
@@ -64,16 +72,17 @@ export default function Home() {
   }, []);
 
   const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    fetchFilteredVideos(newFilters);
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    fetchFilteredVideos(updatedFilters);
   };
   
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <PromoBanner />
+      <PromoBanner text={siteSettings?.bannerText}/>
       <div className="flex flex-col md:flex-row">
-        <aside className="w-full shrink-0 md:w-[250px] bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
+        <aside className="w-full shrink-0 md:w-[250px] md:sticky md:top-0 md:h-screen bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
           <SidebarContent onFilterChange={handleFilterChange} />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
@@ -110,7 +119,13 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <MainContent videos={allVideos} shorts={shorts} />
+            <MainContent 
+              videos={allVideos} 
+              shorts={shorts} 
+              categories={categories}
+              onCategoryChange={(catId) => handleFilterChange({category: catId})}
+              siteSettings={siteSettings}
+            />
           )}
         </main>
       </div>

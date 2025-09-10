@@ -12,7 +12,7 @@ const getToken = () => {
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`API Error: ${response.statusText}`, errorText);
+    console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
     try {
       const errorJson = JSON.parse(errorText);
       throw new Error(errorJson.message || 'An unknown error occurred');
@@ -48,10 +48,16 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 
 // --- Public Data Fetching Functions ---
 
-export async function getVideos(filters: { types?: string[] } = {}) {
+export async function getVideos(filters: { types?: string[], category?: string, tag?: string } = {}) {
   const params = new URLSearchParams();
   if (filters.types && filters.types.length > 0) {
     filters.types.forEach(type => params.append('type', type));
+  }
+  if (filters.category) {
+    params.append('category', filters.category);
+  }
+  if (filters.tag) {
+    params.append('tag', filters.tag);
   }
   return apiRequest(`/videos?${params.toString()}`);
 }
@@ -79,10 +85,10 @@ export const getVideoBySlug = async (slug: string) => {
 
 export const getSiteSettings = async () => {
     try {
-        // This is a public route on the main API, but we'll use the admin one for consistency in this file
         return await apiRequest('/admin/settings');
     } catch (e) {
-        return { siteName: 'StreamVerse', siteLogoUrl: '' }; // Fallback
+        console.error("Could not fetch site settings, using fallback.", e);
+        return { siteName: 'StreamVerse', siteLogoUrl: '', bannerText: '', showFeatured: true, featuredVideoIds: [] }; // Fallback
     }
 };
 
