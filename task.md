@@ -174,3 +174,9 @@ A > before the line number in the error source usually indicates the line of int
 ### Prompt 10
 
 Also the mobile version of the site has search options also , the search options . remove two different options. Just add single login/signup options in the phone version. And all these comits and the site also save this on the plan.md and task.md . also add detailed structure of the site in context.md and add full prompt for the backend in the backend.md and there write how the frontend will interact with backend.
+
+---
+
+### Prompt 11
+
+Disguisting, you go back to the old style. Generate more precise database schema and think carefully, each and every componenets of admin panels are working and live traceable. Use real time data from the website. And remove revinew options from admin panel. Likes, comments and videos are also shareable to any site.videos are views, llke, coments will store in the database. Videos are encrypted like videos .mp4 src willnot found any user. REbuild the video player more preciselly and also the short videos are like fake likes and coments and fake chanels. remove this. The chanel name can create from the admin panel and admin page. You spoil the site. videos are not loading by their slug or /slug url . Create 404 errors page . Fix all the admin page related problems and create real database schema same as data seed. Videos durations will auto detect. Use advance video libaries . Use something like ffmeg in the backend also . Make the videos encrypted like normal people can trace the video src. Make it happens, real quick. Review all the things carefully. Implement commenting systems also carefully. Use superfast method and customizations options. Make each options useable and highly effective.
