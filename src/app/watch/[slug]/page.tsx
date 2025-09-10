@@ -42,6 +42,7 @@ export default function WatchPage() {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -120,17 +121,24 @@ export default function WatchPage() {
       setIsMuted(!isMuted);
   }, [isMuted]);
 
-  const handleSeek = (value: number[]) => {
+  const handleSeekChange = (value: number[]) => {
+    setIsSeeking(true); // User starts dragging
+    setProgress(value[0]);
+  };
+  
+  const handleSeekCommit = (value: number[]) => {
     const newTime = value[0];
-    setProgress(newTime); // Update slider position immediately
     if (playerRef.current) {
-      playerRef.current.seekTo(newTime);
+      playerRef.current.seekTo(newTime, 'seconds');
+      setProgress(newTime);
     }
+    setIsSeeking(false); // User releases slider
   };
   
   const handleProgress = (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => {
-    if (!playerRef.current?.getDuration()) return;
-    setProgress(state.playedSeconds);
+    if (!isSeeking) {
+      setProgress(state.playedSeconds);
+    }
   };
 
   const handleToggleFullScreen = useCallback(() => {
@@ -285,6 +293,7 @@ export default function WatchPage() {
                 width="100%"
                 height="100%"
                 className="react-player"
+                config={{ file: { forceVideo: true } }}
               />
               {isBuffering && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-20">
@@ -314,7 +323,8 @@ export default function WatchPage() {
                     max={duration}
                     step={1}
                     value={[progress]}
-                    onValueChange={handleSeek}
+                    onValueChange={handleSeekChange}
+                    onValueCommit={handleSeekCommit}
                     className="w-full"
                   />
                   <div className="flex items-center justify-between mt-2">
