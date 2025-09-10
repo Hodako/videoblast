@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/header';
@@ -59,6 +60,7 @@ export default function Home() {
       }
     };
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilterChange = (newFilters) => {
@@ -78,11 +80,33 @@ export default function Home() {
           {isLoading ? (
             <div className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-                {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+                {[...Array(4)].map((_, i) => (
+                   <div key={i} className="group">
+                      <Skeleton className="w-full aspect-video rounded-lg" />
+                      <div className="flex gap-4 pt-2">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="w-full space-y-2">
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                      </div>
+                  </div>
+                ))}
               </div>
                <Skeleton className="h-48 w-full" />
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
+                {[...Array(8)].map((_, i) => (
+                   <div key={i} className="group">
+                      <Skeleton className="w-full aspect-video rounded-lg" />
+                      <div className="flex gap-4 pt-2">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="w-full space-y-2">
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                      </div>
+                  </div>
+                ))}
               </div>
             </div>
           ) : (

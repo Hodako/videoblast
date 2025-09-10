@@ -1,13 +1,14 @@
+
 // src/app/watch/[slug]/page.tsx
 'use client';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Head from 'next/head';
 import Header from '@/components/header';
-import { getVideoBySlug, getComments as fetchComments, postComment, likeVideo, unlikeVideo, getLikes } from '@/lib/data';
+import { getVideoBySlug, getComments as fetchComments, postComment, getVideos } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send, Heart } from 'lucide-react';
+import { ThumbsUp, Share2, Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, Captions, RotateCcw, RotateCw, Check, MessageCircle, Send } from 'lucide-react';
 import VideoCard from '@/components/video-card';
 import { Slider } from '@/components/ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -34,8 +35,6 @@ export default function WatchPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
-  const [likes, setLikes] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
   
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
@@ -57,19 +56,22 @@ export default function WatchPage() {
     if (!slug) return;
     setIsLoading(true);
     try {
-      const currentVideo = await getVideoBySlug(slug);
+      const [currentVideo, allVideos] = await Promise.all([
+        getVideoBySlug(slug),
+        getVideos()
+      ]);
+
       if (currentVideo) {
         setVideo(currentVideo);
         const commentsData = await fetchComments(currentVideo.id);
         setComments(commentsData);
-        const likesData = await getLikes(currentVideo.id);
-        setLikes(likesData.count);
+        setRecommendedVideos(allVideos.filter(v => v.id !== currentVideo.id));
       } else {
-        router.push('/404');
+        router.push('/not-found');
       }
     } catch (error) {
       console.error("Failed to fetch video data:", error);
-      router.push('/404');
+      router.push('/not-found');
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +89,9 @@ export default function WatchPage() {
   const handleMouseMove = () => {
     setShowControls(true);
     if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
-    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
+    if(isPlaying) {
+      controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
+    }
   };
 
   const handleMouseLeave = () => {
@@ -117,12 +121,18 @@ export default function WatchPage() {
       setIsMuted(!isMuted);
   }, [isMuted]);
 
-  const handleProgressChange = (value: number[]) => {
-    const newProgress = value[0];
+  const handleSeek = (value: number[]) => {
+    const newTime = value[0];
     if (playerRef.current) {
-      playerRef.current.seekTo(newProgress);
-      setProgress(newProgress);
+      playerRef.current.seekTo(newTime);
+      setCurrentTime(newTime);
     }
+  };
+  
+  const handleProgress = (state: { played: number, playedSeconds: number, loaded: number, loadedSeconds: number }) => {
+    if (!playerRef.current?.getDuration()) return;
+    setProgress(state.playedSeconds);
+    setCurrentTime(state.playedSeconds);
   };
 
   const handleToggleFullScreen = useCallback(() => {
@@ -272,10 +282,7 @@ export default function WatchPage() {
                 onPause={() => setIsPlaying(false)}
                 onBuffer={() => setIsBuffering(true)}
                 onBufferEnd={() => setIsBuffering(false)}
-                onProgress={(state) => {
-                    setProgress(state.playedSeconds);
-                    setCurrentTime(state.playedSeconds);
-                }}
+                onProgress={handleProgress}
                 onDuration={setDuration}
                 width="100%"
                 height="100%"
@@ -309,7 +316,7 @@ export default function WatchPage() {
                     max={duration}
                     step={1}
                     value={[progress]}
-                    onValueChange={handleProgressChange}
+                    onValueChange={handleSeek}
                     className="w-full"
                   />
                   <div className="flex items-center justify-between mt-2">
@@ -387,7 +394,7 @@ export default function WatchPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost">
-                    <ThumbsUp className="mr-2 h-4 w-4" /> {likes}
+                    <ThumbsUp className="mr-2 h-4 w-4" /> 0
                   </Button>
                   <Button variant="ghost" onClick={handleShare}>
                     <Share2 className="mr-2 h-4 w-4" /> Share

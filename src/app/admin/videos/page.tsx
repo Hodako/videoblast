@@ -1,4 +1,5 @@
 
+
 // src/app/admin/videos/page.tsx
 'use client'
 import { useEffect, useState } from "react";
@@ -63,7 +64,7 @@ export default function AdminVideosPage() {
   useEffect(() => {
     fetchVideos();
     fetchRelatedData();
-  }, [toast]);
+  }, []);
 
   const handleOpenDialog = (video = null) => {
     if (video) {
@@ -71,7 +72,7 @@ export default function AdminVideosPage() {
       setCurrentVideo({
         ...video,
         tags: Array.isArray(video.tags) ? video.tags.join(', ') : '',
-        meta_data: video.meta_data ? (typeof video.meta_data === 'string' ? JSON.parse(video.meta_data) : video.meta_data) : { seo_title: '', seo_description: '' },
+        meta_data: video.meta_data && typeof video.meta_data === 'object' ? video.meta_data : { seo_title: '', seo_description: '' },
         categoryIds: video.categories?.map(c => c.category.id) || [],
         creator_id: video.creator_id,
       });
@@ -105,6 +106,7 @@ export default function AdminVideosPage() {
     
     const videoPayload = {
       ...currentVideo,
+      views: Number(currentVideo.views) || 0,
       tags: currentVideo.tags.split(',').map(tag => tag.trim()),
       creator_id: currentVideo.creator_id ? parseInt(currentVideo.creator_id, 10) : null
     };
