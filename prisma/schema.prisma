@@ -1,32 +1,36 @@
-// prisma/schema.prisma
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
 model User {
-  id            Int        @id @default(autoincrement())
-  first_name    String
-  last_name     String
-  email         String     @unique
-  password_hash String
-  created_at    DateTime   @default(now())
-  role          String     @default("user")
-  playlists     Playlist[]
-  comments      Comment[]
-  likes         Like[]
+  id              Int      @id @default(autoincrement())
+  first_name      String
+  last_name       String
+  email           String   @unique
+  password_hash   String
+  created_at      DateTime @default(now())
+  role            String   @default("user") // 'user' or 'admin'
+  videos          Video[]
+  playlists       Playlist[]
+  comments        Comment[]
+  likes           Like[]
 }
 
 model Video {
-  id            Int             @id @default(autoinpcrement())
-  slug          String          @unique
+  id            Int             @id @default(autoincrement())
   title         String
-  description   String?         @db.Text
+  slug          String          @unique
+  description   String?
   duration      String?
   views         Int             @default(0)
   uploaded      DateTime        @default(now())
@@ -34,22 +38,23 @@ model Video {
   video_url     String
   subtitle      String?
   uploader_id   Int
+  uploader      User            @relation(fields: [uploader_id], references: [id])
   tags          String[]
   meta_data     Json?
   display_order Int?
-  type          String?
+  type          String?         // 'straight', 'gay', 'trans'
   creator_id    Int?
   creator       Creator?        @relation(fields: [creator_id], references: [id])
   categories    VideoCategory[]
-  playlists     PlaylistVideo[]
   comments      Comment[]
   likes         Like[]
+  playlists     PlaylistVideo[]
 }
 
 model Short {
   id            Int      @id @default(autoincrement())
+  title         String   @unique
   slug          String   @unique
-  title         String
   video_url     String
   thumbnail_url String?
   views         String?
@@ -91,14 +96,15 @@ model Comment {
 }
 
 model Like {
-  id       Int    @id @default(autoincrement())
+  id       Int   @id @default(autoincrement())
   user_id  Int
   video_id Int
-  user     User   @relation(fields: [user_id], references: [id])
-  video    Video  @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  user     User  @relation(fields: [user_id], references: [id])
+  video    Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, video_id])
 }
+
 
 model SiteSetting {
   key   String @id
@@ -115,7 +121,7 @@ model Creator {
   id          Int     @id @default(autoincrement())
   name        String  @unique
   image_url   String?
-  description String? @db.Text
+  description String?
   videos      Video[]
   shorts      Short[]
 }
