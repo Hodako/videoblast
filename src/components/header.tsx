@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Menu, Search, UserCircle, ArrowLeft, Film, Settings, LogOut } from 'lucide-react';
+import { Menu, Search, UserCircle, ArrowLeft, Film, Settings, LogOut, Image as ImageIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRouter } from 'next/navigation';
@@ -65,6 +65,9 @@ export default function Header({ settings }) {
       <Link href="/videos" className="text-sm text-foreground hover:text-primary transition-colors">Videos</Link>
       <Link href="/shorts/0" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2">
         <Film className="w-5 h-5" /> Shorts
+      </Link>
+       <Link href="/images" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-2">
+        <ImageIcon className="w-5 h-5" /> Photos
       </Link>
       <Link href="/live" className="text-sm text-foreground hover:text-primary transition-colors">Live</Link>
       <Link href="/categories" className="text-sm text-foreground hover:text-primary transition-colors">Categories</Link>

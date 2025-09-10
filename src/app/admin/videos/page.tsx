@@ -73,7 +73,7 @@ export default function AdminVideosPage() {
         tags: Array.isArray(video.tags) ? video.tags.join(', ') : '',
         meta_data: video.meta_data && typeof video.meta_data === 'object' ? video.meta_data : { seo_title: '', seo_description: '' },
         categoryIds: video.categories?.map(c => c.category.id) || [],
-        creator_id: video.creator_id,
+        creator_id: video.creator_id?.toString() ?? null,
       });
     } else {
       setIsEditing(false);
