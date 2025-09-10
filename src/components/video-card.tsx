@@ -66,10 +66,12 @@ export default function VideoCard({ video }: VideoCardProps) {
         </div>
       </Card>
       <div className="flex gap-3">
-        <Avatar className="h-9 w-9">
-            <AvatarImage src={video.creator?.image_url} alt={video.creator?.name} />
-            <AvatarFallback>{video.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
-        </Avatar>
+        <Link href="#" className="shrink-0 z-10">
+          <Avatar className="h-9 w-9">
+              <AvatarImage src={video.creator?.image_url} alt={video.creator?.name} />
+              <AvatarFallback>{video.creator?.name?.charAt(0) || 'U'}</AvatarFallback>
+          </Avatar>
+        </Link>
         <div>
             <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">{video.title}</h3>
             <p className="text-xs text-muted-foreground mt-1">{video.creator?.name}</p>

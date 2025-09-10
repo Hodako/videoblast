@@ -129,6 +129,8 @@ router.put('/videos/:id', async (req, res) => {
   
   try {
     const videoId = parseInt(id, 10);
+    if(isNaN(videoId)) return res.status(400).json({ message: 'Invalid video ID.' });
+
     await prisma.$transaction(async (tx) => {
       await tx.videoCategory.deleteMany({
         where: { video_id: videoId }
@@ -164,7 +166,9 @@ router.put('/videos/:id', async (req, res) => {
 router.delete('/videos/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.video.delete({ where: { id: parseInt(id) } });
+    const videoId = parseInt(id, 10);
+    if(isNaN(videoId)) return res.status(400).json({ message: 'Invalid video ID.' });
+    await prisma.video.delete({ where: { id: videoId } });
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -174,14 +178,18 @@ router.delete('/videos/:id', async (req, res) => {
 
 router.put('/videos/reorder', async (req, res) => {
   const videos = req.body; // Expects an array of { id: number, order: number }
+  if(!Array.isArray(videos)) return res.status(400).json({ message: 'Request body must be an array.' });
   try {
     await prisma.$transaction(
-      videos.map(video => 
-        prisma.video.update({
+      videos.map(video => {
+        if(typeof video.id !== 'number' || typeof video.order !== 'number') {
+            throw new Error('Invalid video data in array.');
+        }
+        return prisma.video.update({
           where: { id: video.id },
           data: { display_order: video.order }
         })
-      )
+      })
     );
     res.status(200).json({ message: "Video order updated successfully."});
   } catch (error) {
@@ -230,8 +238,10 @@ router.put('/shorts/:id', async (req, res) => {
   const { id } = req.params;
   const { title, video_url, thumbnail_url, creator_id } = req.body;
   try {
+    const shortId = parseInt(id, 10);
+    if(isNaN(shortId)) return res.status(400).json({ message: 'Invalid short ID.' });
     const updatedShort = await prisma.short.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: shortId },
       data: {
         title,
         slug: createSlug(title),
@@ -253,7 +263,9 @@ router.put('/shorts/:id', async (req, res) => {
 router.delete('/shorts/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.short.delete({ where: { id: parseInt(id) }});
+    const shortId = parseInt(id, 10);
+    if(isNaN(shortId)) return res.status(400).json({ message: 'Invalid short ID.' });
+    await prisma.short.delete({ where: { id: shortId }});
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -287,7 +299,9 @@ router.post('/images', async (req, res) => {
 router.delete('/images/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.image.delete({ where: { id: parseInt(id) } });
+    const imageId = parseInt(id, 10);
+    if(isNaN(imageId)) return res.status(400).json({ message: 'Invalid image ID.' });
+    await prisma.image.delete({ where: { id: imageId } });
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -302,7 +316,11 @@ router.get('/playlists', async (req, res) => {
             include: {
                 videos: {
                     include: {
-                        video: true
+                        video: {
+                          include: {
+                            creator: true
+                          }
+                        }
                     }
                 },
                 user: true
@@ -340,10 +358,13 @@ router.put('/playlists/:id', async (req, res) => {
     const { id } = req.params;
     const { name, videoIds = [] } = req.body;
     try {
+        const playlistId = parseInt(id, 10);
+        if(isNaN(playlistId)) return res.status(400).json({ message: 'Invalid playlist ID.' });
+
         await prisma.$transaction(async (tx) => {
-            await tx.playlistVideo.deleteMany({ where: { playlist_id: parseInt(id) }});
+            await tx.playlistVideo.deleteMany({ where: { playlist_id: playlistId }});
             const updatedPlaylist = await tx.playlist.update({
-                where: { id: parseInt(id) },
+                where: { id: playlistId },
                 data: {
                     name,
                     videos: {
@@ -364,8 +385,10 @@ router.put('/playlists/:id', async (req, res) => {
 router.delete('/playlists/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    await prisma.playlistVideo.deleteMany({ where: { playlist_id: parseInt(id) } });
-    await prisma.playlist.delete({ where: { id: parseInt(id) } });
+    const playlistId = parseInt(id, 10);
+    if(isNaN(playlistId)) return res.status(400).json({ message: 'Invalid playlist ID.' });
+    await prisma.playlistVideo.deleteMany({ where: { playlist_id: playlistId } });
+    await prisma.playlist.delete({ where: { id: playlistId } });
     res.status(204).send();
   } catch (error) {
     console.error(error);
@@ -439,7 +462,9 @@ router.put('/categories/:id', async (req, res) => {
         return res.status(400).json({ message: 'Category name cannot be empty.'});
     }
     try {
-        const updated = await prisma.category.update({ where: { id: parseInt(id) }, data: { name }});
+        const categoryId = parseInt(id, 10);
+        if(isNaN(categoryId)) return res.status(400).json({ message: 'Invalid category ID.' });
+        const updated = await prisma.category.update({ where: { id: categoryId }, data: { name }});
         res.json(updated);
     } catch (error) {
          if (error.code === 'P2002') {
@@ -451,7 +476,9 @@ router.put('/categories/:id', async (req, res) => {
 router.delete('/categories/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.category.delete({ where: { id: parseInt(id) } });
+        const categoryId = parseInt(id, 10);
+        if(isNaN(categoryId)) return res.status(400).json({ message: 'Invalid category ID.' });
+        await prisma.category.delete({ where: { id: categoryId } });
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ message: 'Server error deleting category' });
@@ -489,7 +516,9 @@ router.put('/creators/:id', async (req, res) => {
         return res.status(400).json({ message: 'Creator name cannot be empty.'});
     }
     try {
-        const updated = await prisma.creator.update({ where: { id: parseInt(id) }, data: { name, image_url, description }});
+        const creatorId = parseInt(id, 10);
+        if(isNaN(creatorId)) return res.status(400).json({ message: 'Invalid creator ID.' });
+        const updated = await prisma.creator.update({ where: { id: creatorId }, data: { name, image_url, description }});
         res.json(updated);
     } catch (error) {
         if (error.code === 'P2002') {
@@ -501,7 +530,9 @@ router.put('/creators/:id', async (req, res) => {
 router.delete('/creators/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        await prisma.creator.delete({ where: { id: parseInt(id) } });
+        const creatorId = parseInt(id, 10);
+        if(isNaN(creatorId)) return res.status(400).json({ message: 'Invalid creator ID.' });
+        await prisma.creator.delete({ where: { id: creatorId } });
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ message: 'Server error deleting creator' });
