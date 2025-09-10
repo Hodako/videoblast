@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -26,7 +27,7 @@ import settingsRoutes from './routes/settings'; // New public settings route
 
 app.use('/api/videos', videoRoutes);
 app.use('/api/shorts', shortsRoutes);
-app->use('/api/categories', categoryRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/creators', creatorRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes); // New public settings route
