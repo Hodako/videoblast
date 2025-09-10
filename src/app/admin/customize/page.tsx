@@ -114,7 +114,7 @@ export default function CustomizePage() {
             </div>
             <div className="space-y-2 col-span-2">
               <Label htmlFor="siteMotto">Site Motto (Meta Description)</Label>
-              <Textarea id="siteMotto" value={settings.siteMotto} onChange={(e) => handleInputChange('siteMotto', e_mode.target.value)} />
+              <Textarea id="siteMotto" value={settings.siteMotto} onChange={(e) => handleInputChange('siteMotto', e.target.value)} />
             </div>
           </CardContent>
         </Card>

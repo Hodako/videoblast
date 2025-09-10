@@ -249,7 +249,7 @@ router.post('/images', async (req, res) => {
       data: { title, image_url }
     });
     res.status(201).json(newImage);
-  } catch (error)_mode
+  } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error creating image' });
   }
