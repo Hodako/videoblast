@@ -62,7 +62,7 @@ export default function AdminCreatorsPage() {
       fetchCreators();
       setIsDialogOpen(false);
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to save creator." });
+      toast({ variant: "destructive", title: "Error", description: `Failed to save creator: ${error.message}` });
     }
   };
 
@@ -102,8 +102,8 @@ export default function AdminCreatorsPage() {
               <Label htmlFor="image_url" className="text-right">Image URL</Label>
               <Input id="image_url" value={currentCreator.image_url} onChange={handleInputChange} placeholder="https://example.com/image.jpg" className="col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">Description</Label>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label htmlFor="description" className="text-right pt-2">Description</Label>
               <Textarea id="description" value={currentCreator.description} onChange={handleInputChange} placeholder="About the creator..." className="col-span-3" />
             </div>
             <Button onClick={handleSaveCreator}>{isEditing ? 'Save Changes' : 'Save Creator'}</Button>

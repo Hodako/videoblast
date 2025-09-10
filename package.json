@@ -8,7 +8,7 @@
     "dev:frontend": "next dev --turbopack -p 9002",
     "dev:backend": "tsx watch src/backend/index.ts",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node src/backend/index.js",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",

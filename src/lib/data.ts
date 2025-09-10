@@ -11,14 +11,17 @@ const getToken = () => {
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`API Error: ${response.status} ${response.statusText}`, errorText);
+    let errorMessage = `API Error: ${response.status} ${response.statusText}`;
     try {
-      const errorJson = JSON.parse(errorText);
-      throw new Error(errorJson.message || 'An unknown error occurred');
-    } catch {
-      throw new Error(errorText || 'An unknown error occurred');
+      const errorJson = await response.json();
+      errorMessage = errorJson.message || JSON.stringify(errorJson);
+    } catch (e) {
+      // Not a JSON response
+      const textError = await response.text();
+      if(textError) errorMessage = textError;
     }
+    console.error(errorMessage);
+    throw new Error(errorMessage);
   }
   if (response.status === 204) {
     return null; // No content
@@ -93,7 +96,16 @@ export const getSiteSettings = async () => {
         return await apiRequest('/admin/settings');
     } catch (e) {
         console.error("Could not fetch site settings, using fallback.", e);
-        return { siteName: 'StreamVerse', siteLogoUrl: '', bannerText: '', showFeatured: true, featuredVideoIds: [] }; // Fallback
+        // Provide a sensible default structure to prevent crashes
+        return {
+          theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
+          banner: { text: "Welcome!", color: '#2ed573', enabled: false },
+          siteName: 'StreamVerse',
+          siteLogoUrl: '/logo-placeholder.svg',
+          siteMotto: 'Your universe of video content.',
+          showFeatured: true,
+          featuredVideoIds: []
+        };
     }
 };
 

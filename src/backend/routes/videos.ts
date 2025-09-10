@@ -109,7 +109,9 @@ router.get('/search', async (req, res) => {
 
     const shorts = await prisma.short.findMany({
       where: {
-         title: { contains: q as string, mode: 'insensitive' }
+         OR: [
+          { title: { contains: q as string, mode: 'insensitive' } },
+        ],
       },
       include: {
         creator: true

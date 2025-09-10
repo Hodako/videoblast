@@ -16,7 +16,7 @@ export default function AdminShortsPage() {
   const { toast } = useToast();
   const [shorts, setShorts] = useState([]);
   const [creators, setCreators] = useState([]);
-  const [newShort, setNewShort] = useState({ title: '', video_url: '', thumbnail_url: '', creator_id: null });
+  const [newShort, setNewShort] = useState({ title: '', video_url: '', thumbnail_url: '', creator_id: '' });
 
   const fetchShorts = async () => {
     try {
@@ -45,7 +45,7 @@ export default function AdminShortsPage() {
     const payload = { ...newShort, creator_id: newShort.creator_id ? parseInt(newShort.creator_id, 10) : null };
     try {
       await addShort(payload);
-      setNewShort({ title: '', video_url: '', thumbnail_url: '', creator_id: null });
+      setNewShort({ title: '', video_url: '', thumbnail_url: '', creator_id: '' });
       fetchShorts();
       toast({ title: "Success", description: "Short added." });
     } catch (error) {
@@ -90,7 +90,7 @@ export default function AdminShortsPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="creator_id" className="text-right">Creator</Label>
-                 <Select value={newShort.creator_id?.toString() ?? ''} onValueChange={(value) => setNewShort({...newShort, creator_id: value})}>
+                 <Select value={newShort.creator_id} onValueChange={(value) => setNewShort({...newShort, creator_id: value})}>
                     <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select creator" />
                     </SelectTrigger>
