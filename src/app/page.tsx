@@ -22,7 +22,7 @@ export default function Home() {
   const [allVideos, setAllVideos] = useState([]);
   const [shorts, setShorts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filters, setFilters] = useState({ types: [], category: null });
+  const [filters, setFilters] = useState({ types: [], category: null, tag: null });
   const [isLoading, setIsLoading] = useState(true);
   const [siteSettings, setSiteSettings] = useState(null);
 
@@ -82,8 +82,8 @@ export default function Home() {
       <Header />
       <PromoBanner text={siteSettings?.bannerText}/>
       <div className="flex flex-col md:flex-row">
-        <aside className="w-full shrink-0 md:w-[250px] md:sticky md:top-0 md:h-screen bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
-          <SidebarContent onFilterChange={handleFilterChange} />
+        <aside className="w-full shrink-0 md:w-[250px] md:sticky md:top-[60px] md:h-[calc(100vh-60px)] overflow-y-auto bg-card p-5 border-r-0 md:border-r border-border md:order-1 order-2">
+          <SidebarContent onFilterChange={handleFilterChange} categories={categories} />
         </aside>
         <main className="flex-1 p-5 md:order-2 order-1">
           {isLoading ? (

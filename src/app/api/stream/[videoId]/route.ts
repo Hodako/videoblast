@@ -26,15 +26,16 @@ export async function GET(
 
     const videoUrl = video.video_url;
 
+    // Use a HEAD request to get the content-length without downloading the file
     const headResponse = await fetch(videoUrl, { method: 'HEAD' });
     if (!headResponse.ok) {
         return new NextResponse('Could not fetch video metadata', { status: 500 });
     }
-    const fileSize = Number(headResponse.headers.get('content-length'));
-
-    if (isNaN(fileSize)) {
+    const fileSizeHeader = headResponse.headers.get('content-length');
+    if (!fileSizeHeader) {
         return new NextResponse('Could not determine video size', { status: 500 });
     }
+    const fileSize = parseInt(fileSizeHeader, 10);
 
     const range = req.headers.get('range');
     
@@ -44,7 +45,7 @@ export async function GET(
       const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + CHUNK_SIZE, fileSize - 1);
       
       if(start >= fileSize) {
-        return new NextResponse('Requested range not satisfiable', { status: 416 });
+        return new NextResponse('Requested range not satisfiable', { status: 416, headers: { 'Content-Range': `bytes */${fileSize}` } });
       }
       
       const chunkSize = (end - start) + 1;
@@ -71,17 +72,15 @@ export async function GET(
       });
 
     } else {
+        // Initial request without range header
         const headers = new Headers();
         headers.set('Content-Length', fileSize.toString());
         headers.set('Content-Type', 'video/mp4');
         headers.set('Accept-Ranges', 'bytes'); 
 
-        const initialResponse = await fetch(videoUrl);
-        if (!initialResponse.ok || !initialResponse.body) {
-            return new NextResponse('Failed to fetch video', { status: 500 });
-        }
-        
-        return new NextResponse(initialResponse.body, {
+        // We can start streaming the beginning of the file
+        // Or for simplicity, just confirm we can stream
+        return new NextResponse(null, {
             status: 200, 
             headers,
         });

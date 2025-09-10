@@ -1,11 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { User, Heart, Palette } from 'lucide-react';
-import { getCategories } from '@/lib/data';
 
 const SidebarSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="mb-8">
@@ -16,21 +15,14 @@ const SidebarSection = ({ title, children }: { title: string, children: React.Re
 
 type SidebarContentProps = {
   onFilterChange: (filters: { types?: string[], category?: string, tag?: string }) => void;
+  categories: any[];
 };
 
-export default function SidebarContent({ onFilterChange }: SidebarContentProps) {
+export default function SidebarContent({ onFilterChange, categories }: SidebarContentProps) {
   const [types, setTypes] = useState<string[]>([]);
-  const [categories, setCategories] = useState([]);
-  const popularTags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"]; // Could be fetched from DB
-
-  useEffect(() => {
-    const fetchCats = async () => {
-      const data = await getCategories();
-      setCategories(data);
-    }
-    fetchCats();
-  }, []);
-
+  
+  // Example tags - in a real app, these could be fetched or dynamically generated
+  const popularTags = ["Gaming", "Music", "Vlogs", "Sports", "Travel", "Tech", "Comedy"]; 
 
   const handleTypeChange = (type: string) => {
     const newTypes = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
@@ -39,7 +31,7 @@ export default function SidebarContent({ onFilterChange }: SidebarContentProps) 
   }
 
   const handleCategoryChange = (categoryId: string) => {
-    onFilterChange({ category: categoryId });
+    onFilterChange({ category: categoryId === 'all' ? null : categoryId });
   }
 
   const handleTagClick = (tag: string) => {
@@ -91,6 +83,7 @@ export default function SidebarContent({ onFilterChange }: SidebarContentProps) 
             <SelectValue placeholder="Choose category" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map((cat: any) => (
                <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
             ))}

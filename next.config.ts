@@ -16,6 +16,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/api/stream/:videoId',
+        headers: [
+          {
+            key: 'Accept-Ranges',
+            value: 'bytes',
+          },
+        ],
+      },
+    ]
+  },
 };
 
 export default nextConfig;

@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -12,13 +10,13 @@ datasource db {
 }
 
 model User {
-  id            Int         @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   first_name    String
   last_name     String
-  email         String      @unique
+  email         String     @unique
   password_hash String
-  created_at    DateTime    @default(now())
-  role          String      @default("user") // 'user' or 'admin'
+  created_at    DateTime   @default(now())
+  role          String     @default("user") // 'user' or 'admin'
   videos        Video[]
   playlists     Playlist[]
   comments      Comment[]
@@ -26,28 +24,28 @@ model User {
 }
 
 model Video {
-  id            Int         @id @default(autoincrement())
-  slug          String      @unique
+  id            Int             @id @default(autoincrement())
+  slug          String          @unique
   title         String
   description   String?
   duration      String?
-  views         Int         @default(0)
-  uploaded      DateTime    @default(now())
+  views         Int             @default(0)
+  uploaded      DateTime        @default(now())
   thumbnail_url String?
   video_url     String
   subtitle      String?
-  uploader      User        @relation(fields: [uploader_id], references: [id])
+  uploader      User            @relation(fields: [uploader_id], references: [id])
   uploader_id   Int
   tags          String[]
   meta_data     Json?
   display_order Int?
   type          String? // 'straight', 'gay', 'trans'
-  comments      Comment[]
-  likes         Like[]
-  creator       Creator?    @relation(fields: [creator_id], references: [id])
+  creator       Creator?        @relation(fields: [creator_id], references: [id])
   creator_id    Int?
   categories    VideoCategory[]
   playlists     PlaylistVideo[]
+  comments      Comment[]
+  likes         Like[]
 }
 
 model Short {
@@ -75,10 +73,10 @@ model Playlist {
 }
 
 model PlaylistVideo {
-  playlist_id Int
-  video_id    Int
   playlist    Playlist @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
+  playlist_id Int
   video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id    Int
 
   @@id([playlist_id, video_id])
 }
@@ -94,14 +92,14 @@ model Comment {
 }
 
 model Like {
-  id       Int   @id @default(autoincrement())
-  user     User  @relation(fields: [user_id], references: [id])
-  user_id  Int
-  video    Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
-  video_id Int
-
-  @@unique([user_id, video_id])
+  user      User     @relation(fields: [user_id], references: [id])
+  user_id   Int
+  video     Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id  Int
+  
+  @@id([user_id, video_id])
 }
+
 
 model SiteSetting {
   key   String @id
@@ -114,15 +112,6 @@ model Category {
   videos VideoCategory[]
 }
 
-model VideoCategory {
-  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
-  video_id   Int
-  category   Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  category_id Int
-
-  @@id([video_id, category_id])
-}
-
 model Creator {
   id          Int     @id @default(autoincrement())
   name        String  @unique
@@ -130,4 +119,13 @@ model Creator {
   description String?
   videos      Video[]
   shorts      Short[]
+}
+
+model VideoCategory {
+  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id   Int
+  category   Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  category_id Int
+
+  @@id([video_id, category_id])
 }
