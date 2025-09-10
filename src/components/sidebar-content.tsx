@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { User, Heart, Transgender } from 'lucide-react';
+import { User, Heart, Venus } from 'lucide-react';
 
 const SidebarSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="mb-8">
@@ -46,7 +46,7 @@ export default function SidebarContent({ onFilterChange }: SidebarContentProps) 
           <div className="flex items-center space-x-2">
             <Checkbox id="trans" checked={types.includes('trans')} onCheckedChange={() => handleTypeChange('trans')} />
             <Label htmlFor="trans" className="flex items-center gap-2 text-sm font-normal cursor-pointer">
-              <Transgender className="w-4 h-4" /> Trans
+              <Venus className="w-4 h-4" /> Trans
             </Label>
           </div>
         </div>
