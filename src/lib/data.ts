@@ -1,4 +1,6 @@
 // src/lib/data.ts
+import 'server-only';
+import { prisma } from '@/backend/lib/db';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -52,20 +54,42 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 // --- Public Data Fetching Functions ---
 
 export async function getVideos(filters: { types?: string[], category?: string, tag?: string, sortBy?: string } = {}) {
-  const params = new URLSearchParams();
+  const where: any = {};
+  let orderBy: any = { uploaded: 'desc' }; // Default to recent
+  
   if (filters.types && filters.types.length > 0) {
-    filters.types.forEach(type => params.append('type', type));
+      const types = Array.isArray(filters.types) ? filters.types : [filters.types];
+      if (types.length > 0) {
+        where.type = { in: types };
+      }
   }
   if (filters.category) {
-    params.append('category', filters.category);
+      where.categories = { some: { category: { name: { equals: (filters.category as string).replace(/-/g, ' '), mode: 'insensitive' } } } };
   }
   if (filters.tag) {
-    params.append('tag', filters.tag);
+      where.tags = { has: filters.tag as string };
   }
-  if (filters.sortBy) {
-      params.append('sortBy', filters.sortBy);
+
+  if (filters.sortBy === 'popular') {
+      orderBy = { views: 'desc' };
+  } else if (filters.sortBy === 'relevance' && !filters.tag && !filters.category) {
+     orderBy = { display_order: 'asc' };
   }
-  return apiRequest(`/videos?${params.toString()}`);
+
+  try {
+    const videos = await prisma.video.findMany({
+      where,
+      include: {
+        creator: true,
+        categories: { include: { category: true }}
+      },
+      orderBy,
+    });
+    return videos;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Server error fetching videos');
+  }
 }
 
 export async function searchContent(query: string) {
@@ -74,7 +98,15 @@ export async function searchContent(query: string) {
 }
 
 export async function getShorts() {
-  return apiRequest('/shorts');
+   try {
+    const shorts = await prisma.short.findMany({
+      include: { creator: true }
+    });
+    return shorts;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Server error fetching shorts');
+  }
 }
 
 export async function getShortBySlug(slug: string) {
@@ -86,7 +118,15 @@ export const getComments = async (videoId: number) => {
 };
 
 export async function getCategories() {
-  return apiRequest('/categories');
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return categories;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Server error fetching categories');
+  }
 }
 
 export async function getCategoryBySlug(slug: string) {
@@ -94,7 +134,15 @@ export async function getCategoryBySlug(slug: string) {
 }
 
 export async function getCreators() {
-  return apiRequest('/creators');
+  try {
+    const creators = await prisma.creator.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return creators;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Server error fetching creators');
+  }
 }
 
 export const getVideoBySlug = async (slug: string) => {
@@ -104,7 +152,11 @@ export const getVideoBySlug = async (slug: string) => {
 
 export const getSiteSettings = async () => {
     try {
-        return await apiRequest('/settings');
+        const result = await prisma.siteSetting.findUnique({where: { key: 'siteSettings' }});
+        if (result) {
+          return result.value;
+        }
+        return {}; // Return empty object if no settings found
     } catch (e) {
         console.error("Could not fetch site settings, using fallback.", e);
         // Provide a sensible default structure to prevent crashes
@@ -119,6 +171,29 @@ export const getSiteSettings = async () => {
         };
     }
 };
+
+export async function getPlaylists() {
+  try {
+    const playlists = await prisma.playlist.findMany({
+      include: {
+        videos: {
+          include: {
+            video: {
+              include: {
+                creator: true
+              }
+            }
+          }
+        },
+        user: true
+      }
+    });
+    return playlists;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Server error fetching playlists');
+  }
+}
 
 // --- Engagement Functions ---
 export const postComment = async (videoId: number, text: string) => {

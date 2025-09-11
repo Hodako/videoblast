@@ -4,7 +4,7 @@
 import Header from '@/components/header';
 import VideoCard from '@/components/video-card';
 import { getVideos } from '@/lib/data';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const VIDEOS_PER_PAGE = 20;
 
-export default function VideosPage() {
+function VideosComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [allVideos, setAllVideos] = useState([]);
@@ -113,4 +113,12 @@ export default function VideosPage() {
       </main>
     </div>
   );
+}
+
+export default function VideosPage() {
+    return (
+        <Suspense fallback={<div>Loading videos...</div>}>
+            <VideosComponent />
+        </Suspense>
+    )
 }

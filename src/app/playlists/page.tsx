@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { ListVideo, Play } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { getAdminPlaylists } from '@/lib/data'; // Use admin to get all playlists for now
+import { getPlaylists } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ export default function PlaylistsPage() {
     const fetchPlaylists = async () => {
         setIsLoading(true);
         try {
-            const data = await getAdminPlaylists();
+            const data = await getPlaylists();
             setPlaylists(data);
         } catch (error) {
             console.error("Failed to fetch playlists:", error);
