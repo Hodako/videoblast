@@ -1,16 +1,13 @@
 // src/lib/data.ts
 
-let API_URL;
-
-if (typeof window !== 'undefined') {
-  // Client-side logic
-  const isSecure = window.location.protocol === 'https:';
-  API_URL = `${isSecure ? 'https' : 'http'}://${window.location.hostname}:3001/api`;
-} else {
-  // Server-side logic (for build process, etc.)
-  API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-}
-
+const getApiUrl = () => {
+    if (typeof window !== 'undefined') {
+        // Client-side: Use the hostname of the browser
+        return `${window.location.protocol}//${window.location.hostname}:3001/api`;
+    }
+    // Server-side: Use the environment variable or a sensible default.
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+};
 
 const getToken = () => {
   if (typeof window === 'undefined') {
@@ -40,6 +37,7 @@ const handleResponse = async (response: Response) => {
 }
 
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const API_URL = getApiUrl();
   const token = getToken();
   const headers = {
     'Content-Type': 'application/json',
