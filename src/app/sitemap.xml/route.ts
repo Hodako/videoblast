@@ -1,5 +1,5 @@
 // src/app/sitemap.xml/route.ts
-import { getVideos, getShorts, getCategories } from '@/lib/data';
+import { getVideos, getShorts, getCategories } from '@/lib/server-data';
 
 const URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 

@@ -1,7 +1,7 @@
 // src/app/layout.tsx
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { getSiteSettings } from '@/lib/data';
+import { getSiteSettings } from '@/lib/server-data';
 import type { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
