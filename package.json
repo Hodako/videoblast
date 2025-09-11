@@ -7,7 +7,7 @@
     "dev": "npm-run-all --parallel dev:next dev:backend",
     "dev:next": "next dev -p 9002",
     "dev:backend": "cross-env NODE_ENV=development tsx src/backend/index.ts",
-    "build": "prisma generate && next build",
+    "build": "prisma migrate deploy && next build",
     "start": "npm-run-all --parallel start:frontend start:backend",
     "start:frontend": "next start -p 9002",
     "start:backend": "cross-env NODE_ENV=production tsx src/backend/index.ts",
