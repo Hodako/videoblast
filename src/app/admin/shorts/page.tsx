@@ -124,7 +124,7 @@ export default function AdminShortsPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="creator_id" className="text-right">Creator</Label>
-                 <Select value={currentShort.creator_id} onValueChange={(value) => setCurrentShort({...currentShort, creator_id: value})}>
+                 <Select value={currentShort.creator_id || ''} onValueChange={(value) => setCurrentShort({...currentShort, creator_id: value})}>
                     <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select creator" />
                     </SelectTrigger>

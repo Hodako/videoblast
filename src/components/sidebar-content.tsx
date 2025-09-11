@@ -29,9 +29,9 @@ export default function SidebarContent({ onFilterChange, categories, tags }: Sid
     onFilterChange({ types: newTypes });
   }
 
-  const handleCategoryChange = (categoryId: string) => {
+  const handleCategoryChange = (categoryName: string) => {
     setActiveTag(null);
-    onFilterChange({ category: categoryId === 'all' ? null : categoryId, tag: null });
+    onFilterChange({ category: categoryName === 'all' ? null : categoryName, tag: null });
   }
 
   const handleTagClick = (tag: string) => {
@@ -91,7 +91,7 @@ export default function SidebarContent({ onFilterChange, categories, tags }: Sid
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map((cat: any) => (
-               <SelectItem key={cat.id} value={cat.id.toString()}>{cat.name}</SelectItem>
+               <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>

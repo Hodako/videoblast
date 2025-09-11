@@ -23,14 +23,16 @@ import shortsRoutes from './routes/shorts';
 import categoryRoutes from './routes/categories';
 import creatorRoutes from './routes/creators';
 import authRoutes from './routes/auth';
-import settingsRoutes from './routes/settings'; // New public settings route
+import settingsRoutes from './routes/settings';
+import playlistRoutes from './routes/playlists'; // Import public playlist routes
 
 app.use('/api/videos', videoRoutes);
 app.use('/api/shorts', shortsRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/creators', creatorRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/settings', settingsRoutes); // New public settings route
+app.use('/api/settings', settingsRoutes);
+app.use('/api/playlists', playlistRoutes); // Use public playlist routes
 
 // Admin routes
 import adminRoutes from './routes/admin';
