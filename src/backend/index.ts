@@ -8,13 +8,18 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-// CORS configuration to allow requests from the frontend
+// CORS configuration for development and production
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigins = isProduction 
+  ? [process.env.FRONTEND_URL || 'http://localhost:9002'] // Add your production frontend URL here
+  : undefined; // In development, undefined allows all origins via the cors library default
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:9002',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  origin: allowedOrigins,
+  optionsSuccessStatus: 200
 };
 
-app.use(cors(corsOptions));
+app.use(isProduction ? cors(corsOptions) : cors());
 app.use(express.json());
 
 // Public routes
