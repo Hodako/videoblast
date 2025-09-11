@@ -1,6 +1,4 @@
 // src/lib/data.ts
-import 'server-only';
-import { prisma } from '@/backend/lib/db';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -54,42 +52,21 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 // --- Public Data Fetching Functions ---
 
 export async function getVideos(filters: { types?: string[], category?: string, tag?: string, sortBy?: string } = {}) {
-  const where: any = {};
-  let orderBy: any = { uploaded: 'desc' }; // Default to recent
-  
-  if (filters.types && filters.types.length > 0) {
-      const types = Array.isArray(filters.types) ? filters.types : [filters.types];
-      if (types.length > 0) {
-        where.type = { in: types };
-      }
+  const query = new URLSearchParams();
+  if (filters.types) {
+    filters.types.forEach(t => query.append('type', t));
   }
   if (filters.category) {
-      where.categories = { some: { category: { name: { equals: (filters.category as string).replace(/-/g, ' '), mode: 'insensitive' } } } };
+    query.append('category', filters.category);
   }
   if (filters.tag) {
-      where.tags = { has: filters.tag as string };
+    query.append('tag', filters.tag);
   }
-
-  if (filters.sortBy === 'popular') {
-      orderBy = { views: 'desc' };
-  } else if (filters.sortBy === 'relevance' && !filters.tag && !filters.category) {
-     orderBy = { display_order: 'asc' };
+  if (filters.sortBy) {
+    query.append('sortBy', filters.sortBy);
   }
-
-  try {
-    const videos = await prisma.video.findMany({
-      where,
-      include: {
-        creator: true,
-        categories: { include: { category: true }}
-      },
-      orderBy,
-    });
-    return videos;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Server error fetching videos');
-  }
+  
+  return apiRequest(`/videos?${query.toString()}`);
 }
 
 export async function searchContent(query: string) {
@@ -98,15 +75,7 @@ export async function searchContent(query: string) {
 }
 
 export async function getShorts() {
-   try {
-    const shorts = await prisma.short.findMany({
-      include: { creator: true }
-    });
-    return shorts;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Server error fetching shorts');
-  }
+  return apiRequest('/shorts');
 }
 
 export async function getShortBySlug(slug: string) {
@@ -118,15 +87,7 @@ export const getComments = async (videoId: number) => {
 };
 
 export async function getCategories() {
-  try {
-    const categories = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
-    });
-    return categories;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Server error fetching categories');
-  }
+  return apiRequest('/categories');
 }
 
 export async function getCategoryBySlug(slug: string) {
@@ -134,15 +95,7 @@ export async function getCategoryBySlug(slug: string) {
 }
 
 export async function getCreators() {
-  try {
-    const creators = await prisma.creator.findMany({
-      orderBy: { name: 'asc' },
-    });
-    return creators;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Server error fetching creators');
-  }
+  return apiRequest('/creators');
 }
 
 export const getVideoBySlug = async (slug: string) => {
@@ -152,11 +105,7 @@ export const getVideoBySlug = async (slug: string) => {
 
 export const getSiteSettings = async () => {
     try {
-        const result = await prisma.siteSetting.findUnique({where: { key: 'siteSettings' }});
-        if (result) {
-          return result.value;
-        }
-        return {}; // Return empty object if no settings found
+        return await apiRequest('/settings');
     } catch (e) {
         console.error("Could not fetch site settings, using fallback.", e);
         // Provide a sensible default structure to prevent crashes
@@ -173,26 +122,7 @@ export const getSiteSettings = async () => {
 };
 
 export async function getPlaylists() {
-  try {
-    const playlists = await prisma.playlist.findMany({
-      include: {
-        videos: {
-          include: {
-            video: {
-              include: {
-                creator: true
-              }
-            }
-          }
-        },
-        user: true
-      }
-    });
-    return playlists;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Server error fetching playlists');
-  }
+  return apiRequest('/playlists');
 }
 
 // --- Engagement Functions ---
