@@ -1,7 +1,9 @@
 // prisma/schema.prisma
+
 datasource db {
-  provider = "postgresql"
-  url = env("DATABASE_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 generator client {
@@ -9,13 +11,13 @@ generator client {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   first_name    String
   last_name     String
-  email         String   @unique
+  email         String     @unique
   password_hash String
-  created_at    DateTime @default(now())
-  role          String   @default("user") // 'user' or 'admin'
+  created_at    DateTime   @default(now())
+  role          String     @default("user")
   videos        Video[]
   playlists     Playlist[]
   comments      Comment[]
@@ -23,29 +25,28 @@ model User {
 }
 
 model Video {
-  id            Int             @id @default(autoincrement())
-  slug          String          @unique
-  title         String
-  description   String?
-  duration      String?
-  views         Int             @default(0)
-  uploaded      DateTime        @default(now())
-  thumbnail_url String?
-  video_url     String
-  subtitle      String?
-  uploader_id   Int
-  tags          String[]
-  meta_data     Json?
-  display_order Int?
-  type          String? // 'straight', 'gay', or 'trans'
-  creator_id    Int?
-  
-  uploader      User            @relation(fields: [uploader_id], references: [id])
-  creator       Creator?        @relation(fields: [creator_id], references: [id])
-  comments      Comment[]
-  likes         Like[]
-  categories    VideoCategory[]
-  playlists     PlaylistVideo[]
+  id              Int             @id @default(autoincrement())
+  slug            String          @unique
+  title           String
+  description     String?
+  duration        String?
+  views           Int             @default(0)
+  uploaded        DateTime        @default(now())
+  thumbnail_url   String?
+  video_url       String
+  subtitle        String?
+  uploader        User            @relation(fields: [uploader_id], references: [id], onDelete: Cascade)
+  uploader_id     Int
+  tags            String[]
+  meta_data       Json?
+  display_order   Int?
+  type            String?
+  creator         Creator?        @relation(fields: [creator_id], references: [id])
+  creator_id      Int?
+  categories      VideoCategory[]
+  playlist_videos PlaylistVideo[]
+  comments        Comment[]
+  likes           Like[]
 }
 
 model Short {
@@ -55,9 +56,8 @@ model Short {
   video_url     String
   thumbnail_url String?
   views         String?
-  creator_id    Int?
-  
   creator       Creator? @relation(fields: [creator_id], references: [id])
+  creator_id    Int?
 }
 
 model Image {
@@ -69,16 +69,16 @@ model Image {
 model Playlist {
   id      Int             @id @default(autoincrement())
   name    String
-  user_id Int
   user    User            @relation(fields: [user_id], references: [id])
+  user_id Int
   videos  PlaylistVideo[]
 }
 
 model PlaylistVideo {
-  playlist_id Int
-  video_id    Int
   playlist    Playlist @relation(fields: [playlist_id], references: [id], onDelete: Cascade)
+  playlist_id Int
   video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id    Int
 
   @@id([playlist_id, video_id])
 }
@@ -86,19 +86,19 @@ model PlaylistVideo {
 model Comment {
   id         Int      @id @default(autoincrement())
   text       String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id    Int
+  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
   video_id   Int
   created_at DateTime @default(now())
-  
-  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  video      Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
 }
 
 model Like {
-  user_id  Int
-  video_id Int
-  user     User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  video    Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id   Int
+  video     Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id  Int
+  liked_at  DateTime @default(now())
 
   @@id([user_id, video_id])
 }
@@ -124,10 +124,10 @@ model Creator {
 }
 
 model VideoCategory {
-  video_id    Int
-  category_id Int
   video       Video    @relation(fields: [video_id], references: [id], onDelete: Cascade)
+  video_id    Int
   category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  category_id Int
 
   @@id([video_id, category_id])
 }
