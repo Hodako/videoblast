@@ -220,5 +220,5 @@ export default function CustomizePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-
+// src/components/video-card.tsx
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -50,21 +50,23 @@ export default function VideoCard({ video }: VideoCardProps) {
   const timeAgo = formatDistanceToNow(uploadedDate, { addSuffix: true });
 
   return (
-    <Link href={`/watch/${video.slug}`} className="group space-y-2">
-      <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
-        <div className="relative w-full aspect-video">
-          <Image
-            src={video.thumbnail_url}
-            alt={video.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
-          <Badge variant="secondary" className="absolute bottom-2 right-2 bg-black/70 text-white text-xs rounded">
-            {video.duration}
-          </Badge>
-        </div>
-      </Card>
+    <div className="group space-y-2">
+      <Link href={`/watch/${video.slug}`} className="block">
+        <Card className="bg-card border-none rounded-lg overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl group-hover:shadow-primary/20 cursor-pointer">
+          <div className="relative w-full aspect-video">
+            <Image
+              src={video.thumbnail_url}
+              alt={video.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+            <Badge variant="secondary" className="absolute bottom-2 right-2 bg-black/70 text-white text-xs rounded">
+              {video.duration}
+            </Badge>
+          </div>
+        </Card>
+      </Link>
       <div className="flex gap-3">
         <div className="shrink-0">
           <Avatar className="h-9 w-9">
@@ -78,6 +80,6 @@ export default function VideoCard({ video }: VideoCardProps) {
             <p className="text-xs text-muted-foreground">{formatViews(video.views)} &bull; {timeAgo}</p>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
