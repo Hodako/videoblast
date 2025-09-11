@@ -7,7 +7,7 @@
     "dev": "npm-run-all --parallel dev:next dev:backend",
     "dev:next": "next dev -p 9002",
     "dev:backend": "cross-env NODE_ENV=development tsx src/backend/index.ts",
-    "build": "prisma migrate deploy && next build",
+    "build": "next build",
     "start": "npm-run-all --parallel start:frontend start:backend",
     "start:frontend": "next start -p 9002",
     "start:backend": "cross-env NODE_ENV=production tsx src/backend/index.ts",
@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma migrate deploy && prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
