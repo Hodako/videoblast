@@ -1,3 +1,4 @@
+
 // src/lib/server-data.ts
 'use server';
 
@@ -37,7 +38,7 @@ export const getSiteSettings = async () => {
         return {
           theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
           banner: { text: "Welcome!", color: '#2ed573', enabled: false },
-          siteName: 'StreamVerse',
+          siteName: 'NosuTube',
           siteLogoUrl: '/logo.svg',
           siteMotto: 'Your universe of video content.',
           showFeatured: true,
@@ -49,7 +50,7 @@ export const getSiteSettings = async () => {
         return {
           theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
           banner: { text: "Welcome!", color: '#2ed573', enabled: false },
-          siteName: 'StreamVerse',
+          siteName: 'NosuTube',
           siteLogoUrl: '/logo.svg',
           siteMotto: 'Your universe of video content.',
           showFeatured: true,

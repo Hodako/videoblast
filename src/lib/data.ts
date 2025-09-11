@@ -1,12 +1,15 @@
+
 // src/lib/data.ts
 
 const getApiUrl = () => {
     if (typeof window !== 'undefined') {
-        // Client-side: Use the hostname of the browser
+        // Client-side: Use the hostname of the browser to build the API URL.
+        // This ensures it works on localhost, production, and local network testing.
         return `${window.location.protocol}//${window.location.hostname}:3001/api`;
     }
-    // Server-side: Use the environment variable or a sensible default.
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    // Server-side: Use the environment variable, which should be set in production.
+    // Fallback to localhost for server-side rendering during local development.
+    return process.env.INTERNAL_API_URL || 'http://localhost:3001/api';
 };
 
 const getToken = () => {
@@ -120,7 +123,7 @@ export const getSiteSettings = async () => {
         return {
           theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
           banner: { text: "Welcome!", color: '#2ed573', enabled: false },
-          siteName: 'StreamVerse',
+          siteName: 'NosuTube',
           siteLogoUrl: '/logo.svg',
           siteMotto: 'Your universe of video content.',
           showFeatured: true,

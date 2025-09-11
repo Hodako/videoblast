@@ -1,3 +1,4 @@
+
 // src/app/admin/customize/page.tsx
 'use client'
 import { useEffect, useState } from "react"
@@ -23,7 +24,7 @@ export default function CustomizePage() {
         color: '#2ed573',
         enabled: true,
     },
-    siteName: 'StreamVerse',
+    siteName: 'NosuTube',
     siteLogoUrl: '/logo.svg', // Default logo
     siteMotto: 'Your universe of video content.',
     showFeatured: true,

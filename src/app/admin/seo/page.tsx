@@ -1,3 +1,4 @@
+
 // src/app/admin/seo/page.tsx
 'use client'
 import { useEffect, useState } from "react"
@@ -13,7 +14,7 @@ import Image from "next/image"
 export default function SEOPage() {
   const { toast } = useToast();
   const [settings, setSettings] = useState({
-    siteName: 'StreamVerse',
+    siteName: 'NosuTube',
     siteMotto: 'Your universe of video content.',
     siteLogoUrl: '/logo.svg' // Default logo for OG image
   });

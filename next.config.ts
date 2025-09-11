@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -28,11 +29,19 @@ const nextConfig: NextConfig = {
         ],
       },
        {
-        source: '/api/stream/:videoId',
+        source: '/api/(.*)',
         headers: [
           {
-            key: 'Accept-Ranges',
-            value: 'bytes',
+            key: 'Access-Control-Allow-Origin',
+            value: '*', // Adjust this in production
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
           },
         ],
       },

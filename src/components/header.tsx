@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { Menu, Search, UserCircle, ArrowLeft, Film, Settings, LogOut, Image as ImageIcon } from 'lucide-react';
@@ -83,7 +84,7 @@ export default function Header({ settings }) {
           {settings?.siteLogoUrl ? (
             <Image src={settings.siteLogoUrl} alt={settings.siteName || 'Logo'} width={32} height={32} />
           ) : null}
-          {settings?.siteName || 'StreamVerse'}
+          {settings?.siteName || 'NosuTube'}
         </Link>
         <nav className="hidden lg:flex gap-8 list-none">
           {navLinks}

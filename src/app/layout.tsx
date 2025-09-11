@@ -1,3 +1,4 @@
+
 // src/app/layout.tsx
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -6,7 +7,7 @@ import type { Metadata } from 'next';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const siteName = settings?.siteName || 'StreamVerse';
+  const siteName = settings?.siteName || 'NosuTube';
   const description = settings?.siteMotto || 'Your universe of video content.';
   const siteLogoUrl = settings?.siteLogoUrl || '/logo.svg';
   const fullLogoUrl = siteLogoUrl.startsWith('http') ? siteLogoUrl : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002') + siteLogoUrl;

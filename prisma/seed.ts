@@ -188,7 +188,7 @@ async function main() {
       value: {
         theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
         bannerText: "🎬 READY TO LEARN 📚 Don't Miss the Course Sale! GET 30% OFF!",
-        siteName: 'StreamVerse',
+        siteName: 'NosuTube',
         siteLogoUrl: '/logo-placeholder.svg',
         showFeatured: true
       }

@@ -1,0 +1,35 @@
+
+# Vercel Environment Variable Instructions
+
+When deploying this application to Vercel, you need to configure the following environment variables in your project's settings.
+
+Go to your Project -> Settings -> Environment Variables.
+
+## 1. Database Connection (Required)
+
+This variable is essential for your application to connect to your PostgreSQL database hosted on Render.com or any other provider.
+
+-   **Variable Name:** `DATABASE_URL`
+-   **Value:** `postgresql://{user}:{password}@{host}/{database}?ssl=true`
+    -   Replace `{user}`, `{password}`, `{host}`, and `{database}` with the actual credentials from your PostgreSQL provider.
+    -   **Important:** The `?ssl=true` parameter is required for connecting to most modern cloud database providers, including Render.
+
+Example Value: `postgresql://myuser:mypassword@dpg-host.oregon-postgres.render.com/mydb?ssl=true`
+
+## 2. Authentication Secret (Required)
+
+This is a secret key used to sign and secure the JWT (JSON Web Tokens) for user authentication. It should be a long, random, and completely private string.
+
+-   **Variable Name:** `JWT_SECRET`
+-   **Value:** A long, random string. You can generate one using a password manager or an online generator.
+
+Example Value: `some-super-secret-random-string-that-is-at-least-32-characters-long`
+
+## 3. Base URL (Optional but Recommended)
+
+This variable helps the application generate correct absolute URLs for SEO purposes (like in `sitemap.xml`) and for Open Graph (social media) link previews.
+
+-   **Variable Name:** `NEXT_PUBLIC_BASE_URL`
+-   **Value:** The full URL of your production deployment on Vercel.
+
+Example Value: `https://nosutube-project.vercel.app`

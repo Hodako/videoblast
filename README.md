@@ -1,4 +1,5 @@
-# Firebase Studio
+
+# NosuTube
 
 This is a NextJS starter in Firebase Studio.
 
