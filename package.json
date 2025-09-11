@@ -52,6 +52,7 @@
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.437.0",
     "next": "15.3.3",
+    "node-fetch": "^2.7.0",
     "react": "^19.0.0-rc-6f91459b-20240726",
     "react-dom": "^19.0.0-rc-6f91459b-20240726",
     "react-hook-form": "^7.53.1",
