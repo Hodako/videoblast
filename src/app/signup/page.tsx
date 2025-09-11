@@ -18,8 +18,8 @@ import Header from "@/components/header";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { signupUser } from "@/lib/data";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -39,16 +39,9 @@ export default function SignupPage() {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, firstName, lastName }),
-      });
+      const { token, user } = await signupUser({ email, password, firstName, lastName });
 
-      if (response.ok) {
-        const { token, user } = await response.json();
+      if (token && user) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         toast({
@@ -59,18 +52,17 @@ export default function SignupPage() {
         // Force a re-render of the header to show login state
         setTimeout(() => router.refresh(), 100); 
       } else {
-        const errorData = await response.json();
         toast({
           variant: "destructive",
           title: "Signup Failed",
-          description: errorData.message || "An error occurred. Please try again.",
+          description: "An error occurred. Please try again.",
         });
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Signup Failed",
-        description: "Could not connect to the server.",
+        description: error.message || "Could not connect to the server.",
       });
     }
   };

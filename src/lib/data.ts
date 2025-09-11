@@ -1,16 +1,20 @@
-
 // src/lib/data.ts
 
+// This function determines the base URL for API requests.
+// It's designed to work seamlessly in different environments: client-side, server-side, and Vercel deployments.
 const getApiUrl = () => {
     if (typeof window !== 'undefined') {
-        // Client-side: Use the hostname of the browser to build the API URL.
-        // This ensures it works on localhost, production, and local network testing.
-        return `${window.location.protocol}//${window.location.hostname}:3001/api`;
+        // We are on the client-side.
+        // All API calls should be relative to the current domain.
+        // This works for localhost, production domains, and preview URLs.
+        return '/api';
     }
-    // Server-side: Use the environment variable, which should be set in production.
-    // Fallback to localhost for server-side rendering during local development.
-    return process.env.INTERNAL_API_URL || 'http://localhost:3001/api';
+    // We are on the server-side (during SSR or build time).
+    // If the NEXT_PUBLIC_BASE_URL is set (e.g., in Vercel), use it.
+    // Otherwise, fall back to the local development backend URL.
+    return process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}/api` : 'http://localhost:9002/api';
 };
+
 
 const getToken = () => {
   if (typeof window === 'undefined') {
@@ -26,7 +30,7 @@ const handleResponse = async (response: Response) => {
       const errorJson = await response.json();
       errorMessage = errorJson.message || JSON.stringify(errorJson);
     } catch (e) {
-      // Not a JSON response
+      // Not a JSON response, or other parsing error.
       const textError = await response.text();
       if(textError) errorMessage = textError;
     }
@@ -34,7 +38,7 @@ const handleResponse = async (response: Response) => {
     throw new Error(errorMessage);
   }
   if (response.status === 204) {
-    return null; // No content
+    return null; // For DELETE requests or other no-content responses
   }
   return response.json();
 }
@@ -51,10 +55,13 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   }
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+    // Construct the full URL, ensuring no double slashes
+    const fullUrl = `${API_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    const response = await fetch(fullUrl, { ...options, headers });
     return handleResponse(response);
   } catch (error) {
     console.error(`Fetch error for ${endpoint}:`, error);
+    // Re-throw the error so it can be caught by the calling function
     throw error;
   }
 };
@@ -119,7 +126,6 @@ export const getSiteSettings = async () => {
         return await apiRequest('/settings');
     } catch (e) {
         console.error("Could not fetch site settings, using fallback.", e);
-        // Provide a sensible default structure to prevent crashes
         return {
           theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
           banner: { text: "Welcome!", color: '#2ed573', enabled: false },
@@ -134,6 +140,21 @@ export const getSiteSettings = async () => {
 
 export async function getPlaylists() {
   return apiRequest('/playlists');
+}
+
+// --- Auth Functions ---
+export const loginUser = async (credentials: any) => {
+    return apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+    });
+}
+
+export const signupUser = async (userData: any) => {
+    return apiRequest('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+    });
 }
 
 // --- Engagement Functions ---
@@ -153,7 +174,8 @@ export const unlikeVideo = async (videoId: number) => {
 }
 
 export const getLikes = async (videoId: number) => {
-    return apiRequest(`/videos/${videoId}/likes`);
+    // Note: this endpoint in the backend is GET, not POST
+    return apiRequest(`/videos/${videoId}/like`);
 }
 
 

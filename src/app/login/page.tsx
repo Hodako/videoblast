@@ -17,8 +17,7 @@ import Header from "@/components/header";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { loginUser } from "@/lib/data";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,16 +27,9 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const { token, user } = await response.json();
+      const { token, user } = await loginUser({ email, password });
+      
+      if (token && user) {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         toast({
@@ -48,18 +40,17 @@ export default function LoginPage() {
         // This is a bit of a hack to force a re-render of the header
         setTimeout(() => router.refresh(), 100);
       } else {
-        const errorData = await response.json();
-        toast({
+         toast({
           variant: "destructive",
           title: "Login Failed",
-          description: errorData.message || "Invalid credentials. Please try again.",
+          description: "Invalid credentials. Please try again.",
         })
       }
     } catch (error) {
        toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Could not connect to the server.",
+        description: error.message || "Could not connect to the server.",
       })
     }
   };

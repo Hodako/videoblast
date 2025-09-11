@@ -1,25 +1,28 @@
-import { Router } from 'express';
-import { prisma } from '../lib/db';
+// src/app/api/playlists/route.ts
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 
-const router = Router();
-
-// Public route to get all playlists
-router.get('/', async (req, res) => {
+export async function GET() {
   try {
     const playlists = await prisma.playlist.findMany({
       include: {
-        user: { // Only select public user info
+        user: { 
           select: {
             first_name: true,
           }
         },
         videos: {
-          take: 1, // Only take one video to get a thumbnail
+          take: 1, 
           include: {
             video: {
               select: {
                 thumbnail_url: true,
               }
+            }
+          },
+          orderBy: {
+            video: {
+              display_order: 'asc'
             }
           }
         },
@@ -28,20 +31,19 @@ router.get('/', async (req, res) => {
         }
       },
     });
-    // Remap to match what frontend might expect
+    
+    // Remap to include videoCount directly and simplify video data
     const publicPlaylists = playlists.map(p => ({
         id: p.id,
         name: p.name,
         user: p.user,
-        videos: p.videos, // The limited video info for thumbnail
+        videos: p.videos, // Frontend can extract thumbnail from this
         videoCount: p._count.videos
     }));
 
-    res.json(publicPlaylists);
+    return NextResponse.json(publicPlaylists);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error fetching playlists' });
+    return NextResponse.json({ message: 'Server error fetching playlists' }, { status: 500 });
   }
-});
-
-export default router;
+}
