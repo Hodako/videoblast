@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { addPlaylist, deletePlaylist, getAdminPlaylists, getVideos, updatePlaylist } from "@/lib/data";
 import { PlusCircle, Edit, Trash } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -17,8 +16,11 @@ export default function AdminPlaylistsPage() {
   const { toast } = useToast();
   const [playlists, setPlaylists] = useState([]);
   const [videos, setVideos] = useState([]);
+  const [isNewPlaylistDialogOpen, setIsNewPlaylistDialogOpen] = useState(false);
   const [newPlaylist, setNewPlaylist] = useState({ name: '', videoIds: [] });
-  const [editingPlaylist, setEditingPlaylist] = useState(null);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPlaylist, setCurrentPlaylist] = useState(null);
 
   const fetchPlaylists = async () => {
     try {
@@ -50,6 +52,7 @@ export default function AdminPlaylistsPage() {
       await addPlaylist({ ...newPlaylist, user_id: user.id });
       setNewPlaylist({ name: '', videoIds: [] });
       fetchPlaylists();
+      setIsNewPlaylistDialogOpen(false);
       toast({ title: "Success", description: "Playlist created." });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Failed to create playlist." });
@@ -67,13 +70,15 @@ export default function AdminPlaylistsPage() {
   };
 
   const handleEditClick = (playlist) => {
-    setEditingPlaylist({ ...playlist, videoIds: playlist.videos?.map(v => v.id) || [] });
+    setCurrentPlaylist({ ...playlist, videoIds: playlist.videos?.map(v => v.video_id) || [] });
+    setIsEditing(true);
   };
   
   const handleUpdatePlaylist = async () => {
     try {
-      await updatePlaylist(editingPlaylist);
-      setEditingPlaylist(null);
+      await updatePlaylist(currentPlaylist);
+      setIsEditing(false);
+      setCurrentPlaylist(null);
       fetchPlaylists();
       toast({ title: "Success", description: "Playlist updated." });
     } catch (error) {
@@ -82,7 +87,7 @@ export default function AdminPlaylistsPage() {
   };
 
   const renderVideoSelection = (playlistState, setPlaylistState) => (
-    <div className="col-span-3 space-y-2 max-h-60 overflow-y-auto">
+    <div className="col-span-3 space-y-2 max-h-60 overflow-y-auto border p-2 rounded-md">
         <p className="text-sm text-muted-foreground mb-2">Select videos to add to this playlist.</p>
         {videos.map((video: any) => (
             <div key={video.id} className="flex items-center space-x-2">
@@ -107,7 +112,7 @@ export default function AdminPlaylistsPage() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Manage Playlists</h1>
-        <Dialog>
+        <Dialog open={isNewPlaylistDialogOpen} onOpenChange={setIsNewPlaylistDialogOpen}>
           <DialogTrigger asChild>
             <Button><PlusCircle className="mr-2 h-4 w-4" /> Create Playlist</Button>
           </DialogTrigger>
@@ -130,14 +135,34 @@ export default function AdminPlaylistsPage() {
         </Dialog>
       </div>
 
+       {/* Edit Playlist Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        {currentPlaylist && (
+            <DialogContent>
+                <DialogHeader><DialogTitle>Edit Playlist</DialogTitle></DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-name" className="text-right">Name</Label>
+                        <Input id="edit-name" value={currentPlaylist.name} onChange={(e) => setCurrentPlaylist({...currentPlaylist, name: e.target.value})} className="col-span-3" />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                        <Label htmlFor="edit-videos" className="text-right pt-2">Videos</Label>
+                        {renderVideoSelection(currentPlaylist, setCurrentPlaylist)}
+                    </div>
+                    <Button onClick={handleUpdatePlaylist}>Save Changes</Button>
+                </div>
+            </DialogContent>
+        )}
+      </Dialog>
+
       <Card>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Playlist Name</TableHead>
                 <TableHead>Video Count</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -145,29 +170,9 @@ export default function AdminPlaylistsPage() {
                 <TableRow key={playlist.id}>
                   <TableCell className="font-medium">{playlist.name}</TableCell>
                   <TableCell>{playlist.videos?.length || 0}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="icon" onClick={() => handleEditClick(playlist)}><Edit className="w-4 h-4"/></Button>
-                            </DialogTrigger>
-                            {editingPlaylist && (
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle>Edit Playlist</DialogTitle></DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                      <div className="grid grid-cols-4 items-center gap-4">
-                                          <Label htmlFor="edit-name" className="text-right">Name</Label>
-                                          <Input id="edit-name" value={editingPlaylist.name} onChange={(e) => setEditingPlaylist({...editingPlaylist, name: e.target.value})} className="col-span-3" />
-                                      </div>
-                                      <div className="grid grid-cols-4 items-start gap-4">
-                                          <Label htmlFor="edit-videos" className="text-right pt-2">Videos</Label>
-                                           {renderVideoSelection(editingPlaylist, setEditingPlaylist)}
-                                      </div>
-                                      <Button onClick={handleUpdatePlaylist}>Save Changes</Button>
-                                    </div>
-                                </DialogContent>
-                            )}
-                        </Dialog>
+                  <TableCell className="text-right">
+                    <div className="flex gap-2 justify-end">
+                        <Button variant="outline" size="icon" onClick={() => handleEditClick(playlist)}><Edit className="w-4 h-4"/></Button>
                         <Button variant="destructive" size="icon" onClick={() => handleDeletePlaylist(playlist.id)}><Trash className="w-4 h-4"/></Button>
                     </div>
                   </TableCell>
