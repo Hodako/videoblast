@@ -22,6 +22,7 @@ type SidebarContentProps = {
 export default function SidebarContent({ onFilterChange, categories, tags }: SidebarContentProps) {
   const [types, setTypes] = useState<string[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   
   const handleTypeChange = (type: string) => {
     const newTypes = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
@@ -30,14 +31,16 @@ export default function SidebarContent({ onFilterChange, categories, tags }: Sid
   }
 
   const handleCategoryChange = (categoryName: string) => {
-    setActiveTag(null);
+    setActiveTag(null); // Reset tag when category changes
+    setActiveCategory(categoryName);
     onFilterChange({ category: categoryName === 'all' ? null : categoryName, tag: null });
   }
 
   const handleTagClick = (tag: string) => {
     const newTag = tag === activeTag ? null : tag;
     setActiveTag(newTag);
-    onFilterChange({ tag: newTag });
+    setActiveCategory('all'); // Reset category when tag changes
+    onFilterChange({ tag: newTag, category: null });
   }
 
   const handleSortChange = (sort: string) => {
@@ -84,7 +87,7 @@ export default function SidebarContent({ onFilterChange, categories, tags }: Sid
       </SidebarSection>
 
       <SidebarSection title="Filter by Categories">
-        <Select onValueChange={handleCategoryChange}>
+        <Select value={activeCategory} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full bg-muted border-none">
             <SelectValue placeholder="Choose category" />
           </SelectTrigger>

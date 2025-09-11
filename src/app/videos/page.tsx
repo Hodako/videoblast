@@ -29,11 +29,18 @@ const VideosPageSkeleton = () => {
     )
 }
 
-
-export default function VideosPage() {
+// This page now uses Suspense to handle the server-side data fetching in VideosComponent
+export default function VideosPage({ searchParams }: { searchParams: { page: string } }) {
+  const currentPage = parseInt(searchParams.page, 10) || 1;
   return (
-    <Suspense fallback={<VideosPageSkeleton />}>
-      <VideosComponent />
-    </Suspense>
+    <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <main className="p-5 max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8">All Videos</h1>
+            <Suspense fallback={<VideosPageSkeleton />}>
+                 <VideosComponent currentPage={currentPage} />
+            </Suspense>
+        </main>
+    </div>
   );
 }
