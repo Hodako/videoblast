@@ -1,6 +1,16 @@
 // src/lib/data.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+let API_URL;
+
+if (typeof window !== 'undefined') {
+  // Client-side logic
+  const isSecure = window.location.protocol === 'https:';
+  API_URL = `${isSecure ? 'https' : 'http'}://${window.location.hostname}:3001/api`;
+} else {
+  // Server-side logic (for build process, etc.)
+  API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+}
+
 
 const getToken = () => {
   if (typeof window === 'undefined') {

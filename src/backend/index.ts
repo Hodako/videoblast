@@ -10,16 +10,14 @@ const port = process.env.PORT || 3001;
 
 // CORS configuration for development and production
 const isProduction = process.env.NODE_ENV === 'production';
-const allowedOrigins = isProduction 
-  ? [process.env.FRONTEND_URL || 'http://localhost:9002'] // Add your production frontend URL here
-  : undefined; // In development, undefined allows all origins via the cors library default
 
+// In development, allow all origins. In production, restrict to a specific domain.
 const corsOptions = {
-  origin: allowedOrigins,
+  origin: isProduction ? (process.env.FRONTEND_URL || 'http://localhost:9002') : '*',
   optionsSuccessStatus: 200
 };
 
-app.use(isProduction ? cors(corsOptions) : cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Public routes
