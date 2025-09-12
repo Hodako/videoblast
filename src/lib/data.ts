@@ -1,18 +1,10 @@
 // src/lib/data.ts
 
 // This function determines the base URL for API requests.
-// It's designed to work seamlessly in different environments: client-side, server-side, and Vercel deployments.
 const getApiUrl = () => {
-    if (typeof window !== 'undefined') {
-        // We are on the client-side.
-        // All API calls should be relative to the current domain.
-        // This works for localhost, production domains, and preview URLs.
-        return '/api';
-    }
-    // We are on the server-side (during SSR or build time).
-    // If the NEXT_PUBLIC_BASE_URL is set (e.g., in Vercel), use it.
+    // If NEXT_PUBLIC_API_URL is set (e.g., in Vercel), use it.
     // Otherwise, fall back to the local development backend URL.
-    return process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}/api` : 'http://localhost:9002/api';
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 };
 
 

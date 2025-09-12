@@ -1,106 +1,83 @@
 # Project Plan & Documentation
 
-This document outlines the file structure of the project and provides instructions on how to run and use the website.
+This document outlines the file structure of the project and provides instructions on how to run and use the website. This project uses a separate frontend and backend architecture.
 
 ---
 
 ## How to Run the Website (Development)
 
-1.  **Install Dependencies:** Open a terminal in the project's root directory and run the following command to install all the necessary packages:
+You will need to run two separate servers simultaneously for local development.
+
+### 1. Running the Backend Server
+
+1.  **Navigate to the Backend Directory:**
+    ```bash
+    cd backend
+    ```
+
+2.  **Install Dependencies:**
     ```bash
     npm install
     ```
 
-2.  **Set Up Database:** Run the following command to reset and seed your database. This will create the necessary tables and populate them with initial data.
-     ```bash
-    npx prisma migrate reset
-    ```
-    *(You will be prompted to confirm; type `y` and press Enter.)*
+3.  **Set Up Environment:** Copy the `backend/.env.example` file to `backend/.env` and fill in your `DATABASE_URL` and `JWT_SECRET`.
 
-3.  **Start the Development Server:** After the installation and database setup is complete, run the following command to start the local development server for both frontend and backend:
+4.  **Run Database Migrations & Seed:** This command will set up and populate your database.
+    ```bash
+    npx prisma migrate dev
+    npx prisma db:seed
+    ```
+
+5.  **Start the Backend Server:**
     ```bash
     npm run dev
     ```
+    The backend will be running on `http://localhost:3002`.
 
-4.  **View the Website:** Open your web browser and navigate to `http://localhost:9002` to see the application in action.
+### 2. Running the Frontend Server
 
----
+1.  **Open a NEW terminal window.** Navigate to the project's root directory.
 
-## How to Build and Run for Production
-
-1.  **Install Dependencies:** Make sure all dependencies are installed:
+2.  **Install Dependencies:**
     ```bash
     npm install
     ```
 
-2.  **Build the Application:** Run the following command to create a production-ready, optimized build of your Next.js frontend and ensure the backend is ready.
-    ```bash
-    npm run build
+3.  **Set Up Environment:** Create a file named `.env.local` in the root directory. Add the following line to tell the frontend where to find your local backend.
+    ```
+    NEXT_PUBLIC_API_URL=http://localhost:3002/api
     ```
 
-3.  **Start the Production Server:** After the build is complete, run this command to start the application in production mode.
-     ```bash
-    npm run start
+4.  **Start the Frontend Development Server:**
+    ```bash
+    npm run dev
     ```
-    The application will be served from `http://localhost:3001` by default (or the port specified by the `PORT` environment variable).
+    The frontend will be running on `http://localhost:9002`. You can now access the website in your browser.
 
 ---
 
-## Website Functionality
+## How to Deploy to Production
 
--   **Homepage:** The main page displays a grid of videos and a carousel of "Shorts". It features dynamic tabs for categories fetched from the database.
--   **Video Player:** Clicking on any video card takes you to a dedicated watch page with an advanced video player. The player includes custom controls for play/pause, volume, instant seeking, playback speed adjustment, and keyboard shortcuts (Space, F, M, Arrow Keys).
--   **Secure Video Streaming:** Video URLs are hidden from the user. Videos are streamed securely through a Next.js API route that proxies the content, preventing direct access to the source file.
--   **Shorts Player:** Clicking on a "Shorts" card takes you to a vertical, full-screen player designed for short-form content. You can navigate between shorts using the up and down arrow buttons on the screen or the arrow keys on your keyboard.
--   **Search:** Use the search bar in the header to find both videos and shorts by title or description.
--   **Login/Signup:** The application includes fully functional login and signup pages that connect to the backend for authentication.
--   **Filtering:** The sidebar on the homepage allows filtering content by type (Straight, Gay, Trans), categories, and tags, with results updated in real-time.
--   **Comments & Likes:** Authenticated users can post comments and like videos. The comment section displays the first 3 comments with a "Show More" button for further engagement.
--   **Responsive Design:** The site features a responsive header and layout that adapts to mobile screens, ensuring a great user experience on any device.
--   **SEO Optimized:** The application automatically generates a `sitemap.xml` for search engine discovery and uses dynamic meta tags for video watch pages to improve search rankings.
+1.  **Deploy the Backend:** Deploy the `backend` directory to a Node.js hosting service like Heroku, Render, or Google Cloud Run. You will need to set the `DATABASE_URL` and `JWT_SECRET` environment variables in that service's settings.
+
+2.  **Deploy the Frontend:** Deploy the root of your project to Vercel. In your Vercel project settings, add an environment variable:
+    *   **Name:** `NEXT_PUBLIC_API_URL`
+    *   **Value:** The public URL of your deployed backend server (e.g., `https://your-backend.onrender.com/api`).
 
 ---
 
 ## Project File Structure
 
-Here is a breakdown of the current files and directories in the project:
+The project is now divided into a Next.js frontend and a Node.js Express backend.
 
--   `/.env`: Environment variables file. Currently empty but intended for storing sensitive information like API keys or database URLs.
--   `/README.md`: The main README file for the project.
--   `/apphosting.yaml`: Configuration file for Firebase App Hosting.
--   `/backend.md`: A detailed plan for the backend services.
--   `/context.md`: Detailed documentation on the project's file structure and context.
--   `/components.json`: Configuration for `shadcn/ui` components.
--   `/next.config.ts`: Configuration file for the Next.js framework, including image optimization and caching headers.
--   `/package.json`: Lists all project dependencies and scripts, including `build` and `start` for production.
--   `/plan.md`: This file. Contains documentation about the project and how to run it.
--   `/task.md`: Contains a log of all user prompts from the development session.
--   `/tailwind.config.ts`: Configuration file for Tailwind CSS.
--   `/tsconfig.json`: TypeScript configuration for the project.
--   `/prisma/`: Contains all database-related files.
-    - `schema.prisma`: The definitive schema for the PostgreSQL database.
-    - `seed.ts`: The script to populate the database with initial test data.
+-   `/` (Root): Contains the Next.js frontend application.
+    -   `/src/app`: All frontend pages and components.
+    -   `/src/lib/data.ts`: The central data-fetching client. It reads the `NEXT_PUBLIC_API_URL` environment variable to know where to send API requests.
+    -   **Note:** The `/src/app/api` directory has been removed as this logic now lives in the backend.
 
-### `src` Directory
--   `/src/app/`: The main application directory for Next.js.
-    -   `globals.css`: Global stylesheet with Tailwind CSS and theme variables.
-    -   `layout.tsx`: The main layout component for the entire application.
-    -   `page.tsx`: The component for the dynamic homepage (`/`).
-    -   `login/page.tsx`, `signup/page.tsx`: User authentication pages.
-    -   `search/page.tsx`: The component for the search results page.
-    -   `videos/page.tsx`, `categories/page.tsx`, `creators/page.tsx`, `playlists/page.tsx`: Public content browsing pages.
-    -   `shorts/[id]/page.tsx`, `watch/[slug]/page.tsx`: Dynamic routes for the video and shorts players.
-    -   `api/`: Contains all backend API route handlers.
-        - `stream/[videoId]/route.ts`: The secure video streaming proxy.
-    - `admin/`: Contains all pages for the administration dashboard.
--   `/src/components/`: Contains all reusable React components.
-    -   `header.tsx`, `sidebar-content.tsx`, `video-card.tsx`, etc.
-    -   `ui/`: Directory for `shadcn/ui` components (e.g., Button, Card, Input).
--   `/src/hooks/`: Contains custom React hooks.
--   `/src/lib/`: Contains library files and utilities.
-    -   `data.ts`: The main data-fetching client for interacting with the backend API.
-    -   `utils.ts`: Utility functions, including `cn` for merging CSS classes.
--   `/src/backend/`: Contains the Express.js backend server logic.
-    -   `index.ts`: The main entry point for the backend server.
-    -   `lib/db.ts`: Prisma client initialization.
-    -   `routes/`: Contains all API route definitions for authentication, content, and admin actions.
+-   `/backend`: Contains the standalone Express.js backend server.
+    -   `/src/index.ts`: The main entry point for the backend server.
+    -   `/src/lib`: Contains database (`db.ts`) and authentication (`auth.ts`) helpers.
+    -   `/src/routes`: Contains all API route definitions, separated into public and admin-only routes.
+    -   `/prisma`: Contains the database schema and migration files.
+    -   `package.json`: Contains all backend-specific dependencies like `express`, `cors`, and `prisma`.

@@ -1,93 +1,35 @@
 // src/app/api/stream/[videoId]/route.ts
-import { prisma } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import fetch from 'node-fetch';
 
-const CHUNK_SIZE = 10 ** 6; // 1MB
+// This is a proxy route. It will fetch the video from the actual backend
+// to hide the source URL from the client.
+// NOTE: This approach is not ideal for production as it puts a lot of load on your Next.js server.
+// A better approach would be to use signed URLs from a cloud storage provider (like S3 or GCS).
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { videoId: string } }
 ) {
-  const { videoId } = params;
+    const { videoId } = params;
 
-  if (!videoId || isNaN(parseInt(videoId))) {
-    return new NextResponse('Invalid video ID', { status: 400 });
-  }
+    // The getApiUrl function will resolve to your separate backend server
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+    const videoUrl = `${API_URL}/videos/stream-source/${videoId}`; // A new backend endpoint to get the real URL
 
-  try {
-    const video = await prisma.video.findUnique({
-      where: { id: parseInt(videoId) },
-    });
-
-    if (!video || !video.video_url) {
-      return new NextResponse('Video not found', { status: 404 });
-    }
-
-    const videoUrl = video.video_url;
-
-    // Use a HEAD request to get the content-length without downloading the file
-    const headResponse = await fetch(videoUrl, { method: 'HEAD' });
-    if (!headResponse.ok) {
-        return new NextResponse('Could not fetch video metadata', { status: 500 });
-    }
-    const fileSizeHeader = headResponse.headers.get('content-length');
-    if (!fileSizeHeader) {
-        return new NextResponse('Could not determine video size', { status: 500 });
-    }
-    const fileSize = parseInt(fileSizeHeader, 10);
-
-    const range = req.headers.get('range');
-    
-    if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + CHUNK_SIZE, fileSize - 1);
-      
-      if(start >= fileSize) {
-        return new NextResponse('Requested range not satisfiable', { status: 416, headers: { 'Content-Range': `bytes */${fileSize}` } });
-      }
-      
-      const chunkSize = (end - start) + 1;
-
-      const videoResponse = await fetch(videoUrl, {
-        headers: {
-            'Range': `bytes=${start}-${end}`
+    try {
+        const videoRes = await fetch(videoUrl);
+        if (!videoRes.ok) {
+            return new NextResponse('Video source not found', { status: 404 });
         }
-      });
-      
-      if (!videoResponse.ok || !videoResponse.body) {
-        return new NextResponse('Failed to fetch video chunk', { status: 500 });
-      }
+        const { sourceUrl } = await videoRes.json();
+        
+        // Redirect the client to the actual video source.
+        // This is simpler than proxying the bytes.
+        // For more security, the `sourceUrl` should be a temporary, signed URL.
+        return NextResponse.redirect(sourceUrl);
 
-      const headers = new Headers();
-      headers.set('Content-Range', `bytes ${start}-${end}/${fileSize}`);
-      headers.set('Accept-Ranges', 'bytes');
-      headers.set('Content-Length', chunkSize.toString());
-      headers.set('Content-Type', 'video/mp4');
-
-      return new NextResponse(videoResponse.body, {
-        status: 206, // Partial Content
-        headers,
-      });
-
-    } else {
-        // Initial request without range header
-        const headers = new Headers();
-        headers.set('Content-Length', fileSize.toString());
-        headers.set('Content-Type', 'video/mp4');
-        headers.set('Accept-Ranges', 'bytes'); 
-
-        // We can start streaming the beginning of the file
-        // Or for simplicity, just confirm we can stream
-        return new NextResponse(null, {
-            status: 200, 
-            headers,
-        });
+    } catch (error) {
+        console.error('Streaming proxy error:', error);
+        return new NextResponse('Internal Server Error', { status: 500 });
     }
-    
-  } catch (error) {
-    console.error('Streaming error:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
-  }
 }
