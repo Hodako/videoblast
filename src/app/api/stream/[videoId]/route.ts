@@ -1,5 +1,5 @@
 // src/app/api/stream/[videoId]/route.ts
-import { prisma } from '@/backend/lib/db';
+import { prisma } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import fetch from 'node-fetch';
 

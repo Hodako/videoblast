@@ -2,7 +2,7 @@
 // src/lib/server-data.ts
 'use server';
 
-import { prisma } from '@/backend/lib/db';
+import { prisma } from '@/lib/db';
 
 /**
  * These functions are for SERVER-SIDE use only, primarily during the build process
