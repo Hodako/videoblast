@@ -1,3 +1,4 @@
+
 // src/components/videos-component.tsx
 'use client';
 import VideoCard from '@/components/video-card';
@@ -24,7 +25,7 @@ export default function VideosComponent({ currentPage }: { currentPage: number})
         try {
             const data = await getVideos({ sortBy: 'popular' });
             setAllVideos(data);
-        } catch (error) => {
+        } catch (error) {
             console.error("Failed to fetch videos:", error);
         } finally {
             setIsLoading(false);
