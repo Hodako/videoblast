@@ -1,16 +1,37 @@
 // src/components/videos-component.tsx
 import VideoCard from '@/components/video-card';
-import { getVideos } from '@/lib/server-data';
+import { getVideos } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const VIDEOS_PER_PAGE = 20;
 
-// This is now an async Server Component
-export default async function VideosComponent({ currentPage }: { currentPage: number}) {
-  const allVideos = await getVideos({ sortBy: 'popular' });
+// This is now a CLIENT component to fetch data on the client side.
+// We can't rely on server-side fetching here easily without a full backend integration
+// for pagination, which is beyond the current scope.
+// This is a practical approach for now.
+import { useEffect, useState } from 'react';
+
+export default function VideosComponent({ currentPage }: { currentPage: number}) {
+  const [allVideos, setAllVideos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVids = async () => {
+        setIsLoading(true);
+        try {
+            const data = await getVideos({ sortBy: 'popular' });
+            setAllVideos(data);
+        } catch (error) {
+            console.error("Failed to fetch videos:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchVids();
+  }, []);
+  
 
   const totalPages = Math.ceil(allVideos.length / VIDEOS_PER_PAGE);
   const paginatedVideos = allVideos.slice((currentPage - 1) * VIDEOS_PER_PAGE, currentPage * VIDEOS_PER_PAGE);

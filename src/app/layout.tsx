@@ -2,15 +2,38 @@
 // src/app/layout.tsx
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { getSiteSettings } from '@/lib/server-data';
+import { getSiteSettings } from '@/lib/data';
 import type { Metadata } from 'next';
 
+// This function now fetches data from the API during the build process on the server.
+async function getLayoutMetadata() {
+  try {
+    // Using the client-side data fetching function is fine here because Next.js
+    // will run this on the server during the build and can fetch from the API URL.
+    const settings = await getSiteSettings();
+    return settings;
+  } catch (error) {
+    console.error("Failed to fetch settings for metadata, using defaults.", error);
+    // Return a default object if the API is unavailable during build.
+    return {
+      theme: { primaryColor: '#FF4757', accentColor: '#E25822', fontFamily: 'PT Sans' },
+      bannerText: "Welcome!",
+      siteName: 'NosuTube',
+      siteLogoUrl: '/logo.svg',
+      siteMotto: 'Your universe of video content.'
+    };
+  }
+}
+
+
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
+  const settings = await getLayoutMetadata();
   const siteName = settings?.siteName || 'NosuTube';
   const description = settings?.siteMotto || 'Your universe of video content.';
   const siteLogoUrl = settings?.siteLogoUrl || '/logo.svg';
-  const fullLogoUrl = siteLogoUrl.startsWith('http') ? siteLogoUrl : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002') + siteLogoUrl;
+  // Use a placeholder base URL or an environment variable if you have one for production.
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+  const fullLogoUrl = siteLogoUrl.startsWith('http') ? siteLogoUrl : baseUrl + siteLogoUrl;
 
   return {
     title: {
@@ -21,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: siteName,
       description: description,
-      url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002',
+      url: baseUrl,
       siteName: siteName,
       images: [
         {
@@ -51,7 +74,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSiteSettings();
+  const settings = await getLayoutMetadata();
   
   return (
     <html lang="en" className="dark">
