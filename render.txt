@@ -33,7 +33,7 @@ Now, you'll deploy the backend code and connect it to the database you just crea
     *   **Branch:** `main` (or your primary branch).
     *   **Root Directory:** `backend` (This is VERY important - it tells Render to only use the code in the `backend` folder).
     *   **Runtime:** `Node`.
-    *   **Build Command:** `npm install && npm run build`
+    *   **Build Command:** `npm install && npm run build` (This will install dependencies, run migrations, and compile TypeScript).
     *   **Start Command:** `npm start`
     *   **Plan:** Make sure you select the **Free** plan.
 3.  **Add Environment Variables:**
@@ -45,20 +45,15 @@ Now, you'll deploy the backend code and connect it to the database you just crea
     *   **Value:** Enter a long, random, secret string here (e.g., `your-super-secret-jwt-string-that-is-long`).
 4.  **Deploy:**
     *   Click **Create Web Service**.
-    *   Render will now start building and deploying your backend. You can watch the logs.
+    *   Render will now start building and deploying your backend. You can watch the logs. It will automatically run the database migrations as part of the build process.
 
 ---
 
-### Part 3: Run Database Migrations
-
-Your backend is deployed, but the database is empty. You need to run the Prisma migrations to create all the tables.
-
-1.  **Open the Shell:** In your deployed backend's page on Render, go to the **Shell** tab.
-2.  **Run the Migration Command:** The shell will connect. Once it's ready, type the following command and press Enter:
-    ```bash
-    npx prisma migrate deploy
-    ```
-3.  **Verify:** The command should report that it has successfully applied your migrations. Your database tables are now created.
+### Part 3: Run Database Seed (Optional, Manual)
+The free plan does not allow for a remote shell, so you cannot run the `db:seed` command directly on Render. If you need to seed your production database:
+1. **Connect Locally:** Use a database tool (like TablePlus, DBeaver, or psql) to connect to your Render database using its "External URL" (you can find this on your database page on Render).
+2. **Seed Locally:** Temporarily change the `DATABASE_URL` in your local `.env` file to your Render database's external URL. Then run `npx prisma db seed` from your local machine's terminal.
+3. **Important:** Remember to change your local `.env` file back afterwards!
 
 ---
 
