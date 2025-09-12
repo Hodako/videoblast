@@ -101,6 +101,7 @@ export default function WatchPage() {
 
       if (currentVideo) {
         setVideo(currentVideo);
+        document.title = `${currentVideo.title} | NosuTube`;
         const [commentsData, likesData, allVideos] = await Promise.all([
             fetchComments(currentVideo.id),
             getLikes(currentVideo.id),
@@ -561,3 +562,5 @@ export default function WatchPage() {
     </>
   );
 }
+
+    
